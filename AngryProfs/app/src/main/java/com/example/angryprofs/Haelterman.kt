@@ -1,37 +1,35 @@
 package com.example.angryprofs
 
 import android.graphics.*
+import kotlin.math.pow
 
 class Haelterman(
-    val view: CanonView,
-    val leTerrain: Array<Terrain>,
-    val lesObstaclesDestructibles: Array<ObstacleDestructible>
+    val view: CanonView
 ) : ProfInter {
-    override var x = 0f
-    override var y = 0f
-    override val width = 0f //a changer pour une valeur exacte
+    override var x = 600f
+    override var y = 600f
+    override val width = 200f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
-    override var v0 = 0f
     override var vx = 0f
     override var vy = 0f
-    override val gravity = 1800
-    override var profOnScreen = true
-    override var profSize = 0f
+    override val gravity = 100
+    override var profOnScreen = false
     override var currentHP: Int = 4
-    override val name = "Sparenberg"
+    override val name = "Haelterman" //inutile je pense
     override val image =
         view.getResources()
-            .getIdentifier("NOMDUPROF", "drawable", view.getContext().getPackageName())
-
+            .getIdentifier("haelterman", "drawable", view.getContext().getPackageName())
     //pour plus general, mettre le nom de la ressource en attribut, facilement changeable a la creation d'objet
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
-    override var lesObstacles: MutableList<out ObstacleInter> = mutableListOf(*lesObstaclesDestructibles, *leTerrain)
 
-    override fun launch(angle: Double) {
-        x = profSize
-        y = view.screenHeight / 2f
-        vx = (v0 * Math.sin(angle)).toFloat()
-        vy = (-v0 * Math.cos(angle)).toFloat()
+    var laserTime : Long? = null
+    lateinit var laser : RectF
+
+    override fun launch(angle: Double, v : Float, finCanon : PointF) {
+        x = finCanon.x
+        y = finCanon.y - width
+        vx = (v * Math.sin(angle)).toFloat()
+        vy = (-v * Math.cos(angle)).toFloat()
         profOnScreen = true
     }
 
@@ -46,13 +44,18 @@ class Haelterman(
             x += (interval * vx).toFloat()
             y += (interval * vy).toFloat()
             r = RectF(x, y, x + width, y + width * 1.2f)
-
             //il faut ecrire le code de detection de chocs ici
-            checkImpact(r)
+            checkImpact(r, true)
             if (currentHP == 0) {
                 profOnScreen = false
             }
-
+            if (laserTime != null) {
+                if (System.nanoTime().toDouble() > (laserTime!! + 5f * 10.toDouble()
+                        .pow(8))
+                ) {
+                    view.lesRectangles.remove(laser)
+                }
+            }
         }
     }
 
@@ -61,21 +64,26 @@ class Haelterman(
     }
 
     override fun myMove() {
-
+        laser = RectF(x, y, x + 10000f, y + 10f) //le laser
+        view.lesRectangles.add(laser)
+        laserTime = System.nanoTime()
+        checkImpact(laser, false)
     }
 
     override fun follow(v: Float) {
         vx += -v
     }
 
-    override fun checkImpact(hitbox: RectF) {       //verifie s'il y a une intersection avec un obstacle, sera etendu aux etudiants par la suite
-        for (d in lesObstacles) {       //pas forcement super optimise s'il y a collision avec un des derniers elements de l'array
-                if (RectF.intersects(hitbox, d.r)) {
-                    d.choc(this)
+    override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle, sera etendu aux etudiants par la suite
+        for (d in view.lesObstacles) {       //pas forcement super optimise s'il y a collision avec un des derniers elements de l'array
+            if (RectF.intersects(hitbox, d.r)) {
+                d.choc(this)
+                if (vuln) {
                     currentHP -= 1
                     break
                 }
             }
+        }
     }
 
 }

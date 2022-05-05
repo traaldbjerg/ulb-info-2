@@ -2,21 +2,17 @@ package com.example.angryprofs
 
 import android.graphics.*
 
-abstract class Bogaerts(
-    val view: CanonView,
-    val leTerrain: Array<Terrain>,
-    val lesObstaclesDestructibles: Array<ObstacleDestructible>
+class Bogaerts(
+    val view: CanonView
 ) : ProfInter {
     override var x = 0f
     override var y = 0f
-    override val width = 0f //a changer pour une valeur exacte
+    override val width = 200f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
-    override var v0 = 0f
     override var vx = 0f
     override var vy = 0f
-    override val gravity = 1800
-    override var profOnScreen = true
-    override var profSize = 0f
+    override val gravity = 100
+    override var profOnScreen = false
     override var currentHP: Int = 4
     override val name = "Bersini"
     override val image =
@@ -25,13 +21,12 @@ abstract class Bogaerts(
 
     //pour plus general, mettre le nom de la ressource en attribut, facilement changeable a la creation d'objet
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
-    override var lesObstacles: MutableList<out ObstacleInter> = mutableListOf(*lesObstaclesDestructibles, *leTerrain)
 
-    override fun launch(angle: Double) {
-        x = profSize
-        y = view.screenHeight / 2f
-        vx = (v0 * Math.sin(angle)).toFloat()
-        vy = (-v0 * Math.cos(angle)).toFloat()
+    override fun launch(angle: Double, v : Float, finCanon : PointF) {
+        x = finCanon.x
+        y = finCanon.y - width / 2
+        vx = (v * Math.sin(angle)).toFloat()
+        vy = (-v * Math.cos(angle)).toFloat()
         profOnScreen = true
     }
 
@@ -48,7 +43,7 @@ abstract class Bogaerts(
             r = RectF(x, y, x + width, y + width * 1.2f)
 
             //il faut ecrire le code de detection de chocs ici
-            checkImpact(r)
+            checkImpact(r, true)
             if (currentHP == 0) {
                 profOnScreen = false
             }
@@ -68,12 +63,14 @@ abstract class Bogaerts(
         vx += -v
     }
 
-    override fun checkImpact(hitbox: RectF) {       //verifie s'il y a une intersection avec un obstacle, sera etendu aux etudiants par la suite
-        for (d in lesObstacles) {       //pas super optimise s'il y a collision avec un des derniers elements de l'array
+    override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle, sera etendu aux etudiants par la suite
+        for (d in view.lesObstacles) {       //pas forcement super optimise s'il y a collision avec un des derniers elements de l'array
                 if (RectF.intersects(hitbox, d.r)) {
                     d.choc(this)
-                    currentHP -= 1
-                    break
+                    if (vuln) {
+                        currentHP -= 1
+                        break
+                    }
                 }
             }
     }

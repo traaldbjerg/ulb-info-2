@@ -2,21 +2,21 @@ package com.example.angryprofs
 
 import android.graphics.*
 
-class Terrain(
-    val x: Float,
-    val y: Float,
-    val length: Float,
-    val height: Float,
-    val view: CanonView
+class Etudiant(
+    var x: Float,
+    var y: Float,
+    var length: Float,
+    var height: Float,
+    var view: CanonView
 ) : ObstacleInter {
 
-    override val r = RectF(x, y,
+    override var r = RectF(x, y,
         x + length, y + height)
     override val paint = Paint()
     override var vx = 0f
 
     override fun draw(canvas: Canvas) {
-        paint.color = Color.GREEN
+        paint.color = Color.GRAY
         canvas.drawRect(
             r.left, r.top, r.right,
             r.bottom, paint
@@ -30,13 +30,16 @@ class Terrain(
 
     override fun update(interval: Double) {
         if (vx != 0f) {
-            var move = (interval * vx).toFloat()
+            val move = (interval * vx).toFloat()
             r.offset(move, 0f)
         }
     }
 
     override fun choc(prof: ProfInter) {
-        prof.vy *= -1f
+        //rajouter points?
+        view.addScore(1000)
+        view.lesObstacles.remove(this)
+        r = RectF(0f, 0f, 0f, 0f)
     }
 
     override fun resetCible() {
