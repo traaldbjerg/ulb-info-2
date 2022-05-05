@@ -7,7 +7,6 @@ import android.graphics.RectF
 interface ObstacleInter {
     val r : RectF
     val paint : Paint
-    val longueurPiece : Float
     var vx: Float
 
     fun draw(canvas: Canvas)

@@ -8,19 +8,16 @@ interface ProfInter {
     var y : Float
     val width : Float
     var r : RectF
-    var v0 : Float
     var vx : Float
     var vy : Float
     var profOnScreen : Boolean
-    var profSize : Float
     var currentHP : Int
     val name : String
     val image : Int
     val gravity: Int
     val bmp : Bitmap?
-    var lesObstacles : MutableList<out ObstacleInter>
 
-    fun launch(angle: Double)
+    fun launch(angle: Double, v : Float, finCanon: PointF)
 
     fun draw(canvas: Canvas)
 
@@ -32,6 +29,6 @@ interface ProfInter {
 
     fun follow(v: Float)
 
-    fun checkImpact(hitbox: RectF)
+    fun checkImpact(hitbox: RectF, vuln : Boolean)
 
 }

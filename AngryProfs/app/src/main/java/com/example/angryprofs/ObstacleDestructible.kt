@@ -3,28 +3,23 @@ package com.example.angryprofs
 import android.graphics.*
 
 class ObstacleDestructible(
-    var x: Float,
-    var y: Float,
-    var length: Float,
-    var height: Float,
-    var view: CanonView
+    val x: Float,
+    val y: Float,
+    val length: Float,
+    val height: Float,
+    val view: CanonView
 ) : ObstacleInter {
 
-    override val r = RectF(x, y,
+    override var r = RectF(x, y,
         x + length, y + height)
     override val paint = Paint()
-    override val longueurPiece = 300f
     override var vx = 0f
 
     override fun draw(canvas: Canvas) {
-        val currentPoint = PointF()
-        currentPoint.x = r.left
-        currentPoint.y = r.top
-
         paint.color = Color.GRAY
         canvas.drawRect(
-            currentPoint.x, currentPoint.y, r.right,
-            currentPoint.y + longueurPiece, paint
+            r.left, r.top, r.right,
+            r.bottom, paint
         )
     }
 
@@ -42,18 +37,21 @@ class ObstacleDestructible(
 
     override fun choc(prof: ProfInter) {
         //rajouter points?
-        view.score += 500
-        prof.lesObstacles.remove(this)
+        view.addScore(100)
+        view.lesObstacles.remove(this)
     }
 
     override fun resetCible() {
         vx = 0f
         r.set(x, y,
         x + length, y + height)
+        if (!(this in view.lesObstacles)) {
+            view.lesObstacles.add(this as Nothing) //je comprends pas pk il veut Nothing et j'ai peur que ca fasse bugger quand on relance le jeu
+        }
     }
 
     override fun follow(v: Float) {
-        vx += v
+        vx += -v
     }
 
 }
