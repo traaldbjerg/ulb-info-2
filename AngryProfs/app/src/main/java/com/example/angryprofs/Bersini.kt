@@ -20,7 +20,7 @@ class Bersini(
     override val name = "Bersini"
     override val image =
         view.getResources()
-            .getIdentifier("NOMDUPROF", "drawable", view.getContext().getPackageName())
+            .getIdentifier("bersini", "drawable", view.getContext().getPackageName())
 
     //pour plus general, mettre le nom de la ressource en attribut, facilement changeable a la creation d'objet
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
