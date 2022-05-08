@@ -1,52 +1,40 @@
 package com.example.angryprofs
 
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.RectF
 
 class Terrain(
-    val x: Float,
-    val y: Float,
-    val length: Float,
-    val height: Float,
-    val view: CanonView
-) : ObstacleInter {
+    override val x: Float,
+    override val y: Float,
+    override val length: Float,
+    override val height: Float,
+    override val view: CanonView
+) : Obstacle(
+    x,
+    y,
+    length,
+    height,
+    view
+) {
 
-    override val r = RectF(x, y,
-        x + length, y + height)
-    override val paint = Paint()
-    override var vx = 0f
-
-    override fun draw(canvas: Canvas) {
+    init {
         paint.color = Color.GREEN
-        canvas.drawRect(
-            r.left, r.top, r.right,
-            r.bottom, paint
-        )
-    }
-
-    override fun setRect() {
-        r.set(x, y,
+        r = RectF(x, y,
         x + length, y + height)
-    }
-
-    override fun update(interval: Double) {
-        if (vx != 0f) {
-            var move = (interval * vx).toFloat()
-            r.offset(move, 0f)
-        }
-    }
-
-    override fun choc(prof: ProfInter) {
-        prof.vy *= -1f
-    }
-
-    override fun resetCible() {
         vx = 0f
-        r.set(x, y,
-        x + length, y + height)
+        lastInterval = 0.0
     }
 
-    override fun follow(v: Float) {
-        vx += -v
+    override fun choc(prof: Prof, vuln : Boolean) : Boolean {
+        if (vuln) {
+            if (prof.r.bottom - prof.vy * lastInterval <= r.top || prof.r.top - prof.vy * lastInterval >= r.bottom) //on verifie si le prof vient de traverser le haut ou le bas de l'obstacle
+                prof.bounce("y", lastInterval)
+            else {
+                prof.bounce("x", lastInterval)
+            }
+        }
+        return false //represente si on retire l'objet des obstacles, important pour certains profs sinon ConcurrentModificationException
     }
 
 }

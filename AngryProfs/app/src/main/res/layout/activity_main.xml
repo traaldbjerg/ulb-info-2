@@ -7,12 +7,53 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+
     <com.example.angryprofs.CanonView
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
         android:id="@+id/vMain"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/Haelti_button"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:text="Haelterman"
+        android:textSize="8sp"
+        app:layout_constraintBottom_toTopOf="@+id/vMain"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/Spar_button"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:text="Sparenberg"
+        android:textSize="8sp"
+        app:layout_constraintStart_toEndOf="@+id/Haelti_button"
+        tools:layout_editor_absoluteY="30dp"
+        app:layout_constraintBottom_toTopOf="@+id/vMain"
         />
+
+    <Button
+        android:id="@+id/Bog_button"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:text="Bogaerts"
+        android:textSize="8sp"
+        app:layout_constraintStart_toEndOf="@+id/Spar_button"
+        tools:layout_editor_absoluteY="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/vMain"/>
+
+    <Button
+        android:id="@+id/Bers_button"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:text="Bersini"
+        android:textSize="8sp"
+        app:layout_constraintStart_toEndOf="@+id/Bog_button"
+        tools:layout_editor_absoluteY="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/vMain"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

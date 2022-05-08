@@ -15,36 +15,42 @@ class Canon(
 ) {
     val canonPaint = Paint()
     val visPaint = Paint()
-    var finCanon = PointF(canonLongueur, view.screenHeight - hauteur)
+    var finCanon = PointF(canonLongueur, view.screenHeight - 150f)
+    var baseCanon = PointF(0f, view.screenHeight - 100f)
     var pointVis1: PointF? = PointF(0f, 0f)    //juste pour avoir une idée d'où on vise
     var pointVis2: PointF? = PointF(0f, 0f)
     var pointVis3: PointF? = PointF(0f, 0f)
     var pointVis4: PointF? = PointF(0f, 0f)
-    val gravity = 100
+    val gravity = 150
     var vx = 0f
-    var v0 = 200f
+    var v0 = 400f
     var v = v0
-    var currentTime = 0.0
+    var currentTime = 0.0f
+    var currentAngle : Double = 0.0
+    var dx = 0f
 
     init {
         visPaint.color = Color.RED
+        align(Math.PI / 4)
+        update(0.0) //pour que les points de visée commencent au bon endroit
     }
 
     fun update(interval : Double) {
         finCanon.offset(vx * interval.toFloat() , 0f)
-        currentTime += interval
-        v = v0 * Math.cos(currentTime * Math.PI).toFloat().pow(2) // devrait simuler effet de la jauge, ne fonctionne pas
+        baseCanon.offset(vx * interval.toFloat() , 0f)
+        currentTime = view.totalElapsedTime.toFloat()
+        v = v0 * (Math.cos(currentTime * Math.PI / 4).toFloat()).pow(2) //simule un effet de jauge, il reste encore à la dessiner
+        dx = (Math.sin(currentAngle) * v).toFloat()
+        pointVis1 = PointF(finCanon.x + dx, finCanon.y + trajTirOblique(currentAngle, dx))
+        pointVis2 = PointF(finCanon.x + 2 * dx, finCanon.y + trajTirOblique(currentAngle, 2 * dx))
+        pointVis3 = PointF(finCanon.x + 3 * dx, finCanon.y + trajTirOblique(currentAngle, 3 * dx))
+        pointVis4 = PointF(finCanon.x + 4 * dx, finCanon.y + trajTirOblique(currentAngle, 4 * dx))
     }
 
     fun draw(canvas: Canvas) {
-        canonPaint.strokeWidth = largeur * 1.5f
-        canvas.drawLine(
-            0f, view.screenHeight - 50f, finCanon.x,
-            finCanon.y, canonPaint
-        )
-        canvas.drawCircle(
-            0f, view.screenHeight - 50f, canonBaseRadius,
-            canonPaint)
+        canonPaint.strokeWidth = largeur
+        canvas.drawLine( baseCanon.x, baseCanon.y, finCanon.x, finCanon.y, canonPaint)
+        canvas.drawCircle(baseCanon.x, baseCanon.y, canonBaseRadius, canonPaint)
         if (!view.fired) {
             canvas.drawCircle(pointVis1!!.x, pointVis1!!.y, 10f, visPaint)
             canvas.drawCircle(pointVis2!!.x, pointVis2!!.y, 10f, visPaint)
@@ -53,22 +59,17 @@ class Canon(
         }
     }
 
-    fun setFinCanon(hauteur: Float) {
-        finCanon.set(canonLongueur, hauteur)
+    fun set() {
+        finCanon.set(canonLongueur - 50f, view.screenHeight - 150f)
+        baseCanon.set(0f, view.screenHeight - 100f)
     }
 
-    fun align(angle: Double) {
+    fun align(angle: Double) {      //une grosse partie de cette methode est passe dans update afin de permettre la mise a jour en direct des points de visee
+        currentAngle = angle  //pas super clean de faire passer par un attribut mais sert a pouvoir garder l'implementation deja ecrite pas le passe
         finCanon.x = (canonLongueur * Math.sin(angle)).toFloat()
         finCanon.y = (-canonLongueur * Math.cos(angle)
                 + view.screenHeight
                 ).toFloat()
-
-        //on calcule les positions pour les 4 points de visee, formules de tir oblique
-        val dx = (Math.sin(angle) * v).toFloat()
-        pointVis1 = PointF(finCanon.x + dx, finCanon.y + trajTirOblique(angle, dx))
-        pointVis2 = PointF(finCanon.x + 2 * dx, finCanon.y + trajTirOblique(angle, 2 * dx))
-        pointVis3 = PointF(finCanon.x + 3 * dx, finCanon.y + trajTirOblique(angle, 3 * dx))
-        pointVis4 = PointF(finCanon.x + 4 * dx, finCanon.y + trajTirOblique(angle, 4 * dx))
     }
 
     private fun trajTirOblique(angle : Double, x: Float) : Float {
@@ -79,6 +80,14 @@ class Canon(
 
     fun follow(v: Float) {
         vx += -v
+    }
+
+    fun reset() {
+        finCanon = PointF(canonLongueur - 50f, view.screenHeight - 150f)
+        baseCanon = PointF(0f, view.screenHeight - 100f)
+        vx = 0f
+        align(Math.PI / 4)
+        update(0.0)
     }
 
 }

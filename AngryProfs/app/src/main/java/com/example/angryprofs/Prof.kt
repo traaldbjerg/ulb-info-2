@@ -3,9 +3,7 @@ package com.example.angryprofs
 import android.graphics.*
 import android.media.Image
 
-interface ProfInter {
-    var x : Float
-    var y : Float
+interface Prof {
     val width : Float
     var r : RectF
     var vx : Float
@@ -30,5 +28,7 @@ interface ProfInter {
     fun follow(v: Float)
 
     fun checkImpact(hitbox: RectF, vuln : Boolean)
+
+    fun bounce(axe : String, interval : Double)
 
 }
