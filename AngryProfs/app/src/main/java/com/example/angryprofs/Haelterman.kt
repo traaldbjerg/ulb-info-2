@@ -3,27 +3,33 @@ package com.example.angryprofs
 import android.graphics.*
 import kotlin.math.pow
 
-class Haelterman(
+class Haelterman(var x: Float,
+    var y: Float,
     val view: CanonView
-) : ProfInter {
-    override var x = 600f
-    override var y = 600f
+) : Prof {
     override val width = 200f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
     override var vx = 0f
     override var vy = 0f
-    override val gravity = 100
+    override val gravity = 150
     override var profOnScreen = false
     override var currentHP: Int = 4
     override val name = "Haelterman" //inutile je pense
     override val image =
         view.getResources()
             .getIdentifier("haelterman", "drawable", view.getContext().getPackageName())
-    //pour plus general, mettre le nom de la ressource en attribut, facilement changeable a la creation d'objet
+
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
 
     var laserTime : Long? = null
     lateinit var laser : RectF
+    val laserPaint = Paint()
+    var x_laser : Float = x + width
+    var y_laser : Float = (y + 0.25 * 1.2 * width).toFloat() + 40f
+
+    init {
+        laserPaint.color = Color.RED
+    }
 
     override fun launch(angle: Double, v : Float, finCanon : PointF) {
         x = finCanon.x
@@ -35,15 +41,16 @@ class Haelterman(
 
     override fun draw(canvas: Canvas) {
         canvas.drawBitmap(bmp, null, r, null)
+        if (laserTime != null)
+            canvas.drawRect(laser, laserPaint)
     }
 
     override fun update(interval: Double) {
         if (profOnScreen) {
             vy += (interval * (gravity)).toFloat()
-            //r.offset((interval * vx).toFloat(), (interval * vy).toFloat())    ligne inutile? on change deja la position en x,y du rectangle
-            x += (interval * vx).toFloat()
-            y += (interval * vy).toFloat()
-            r = RectF(x, y, x + width, y + width * 1.2f)
+            x_laser += (interval * vx).toFloat()  //pour changer la position de tir du laser
+            y_laser += (interval * vy).toFloat()
+            r.offset((interval * vx).toFloat(), (interval * vy).toFloat()) //permet de ne pas changer directement les x et y => plus facile de reset les positions a la fin du tir
             //il faut ecrire le code de detection de chocs ici
             checkImpact(r, true)
             if (currentHP == 0) {
@@ -53,7 +60,7 @@ class Haelterman(
                 if (System.nanoTime().toDouble() > (laserTime!! + 5f * 10.toDouble()
                         .pow(8))
                 ) {
-                    view.lesRectangles.remove(laser)
+                    laserTime = null
                 }
             }
         }
@@ -63,9 +70,8 @@ class Haelterman(
         profOnScreen = false
     }
 
-    override fun myMove() {
-        laser = RectF(x, y, x + 10000f, y + 10f) //le laser
-        view.lesRectangles.add(laser)
+    override fun myMove() {     //tire des lasers par les yeux (aurait pu etre le pouvoir de Mr. Gorza)
+        laser = RectF(x_laser, y_laser, x_laser + 10000f, y_laser + 10f) //le laser
         laserTime = System.nanoTime()
         checkImpact(laser, false)
     }
@@ -74,16 +80,22 @@ class Haelterman(
         vx += -v
     }
 
-    override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle, sera etendu aux etudiants par la suite
-        for (d in view.lesObstacles) {       //pas forcement super optimise s'il y a collision avec un des derniers elements de l'array
+    override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle/etudiant
+        var toRemove : MutableList<Obstacle> = mutableListOf()      //important de passer par cette liste, sinon on modifie la liste en meme temps qu'on l'itere -> ConcurrentModificationException
+        for (d in view.lesObstacles) {
             if (RectF.intersects(hitbox, d.r)) {
-                d.choc(this)
+                if (d.choc(this, vuln))
+                    toRemove.add(d)
+                else
+                    if (vuln)
+                        r.offset(0f,  - 10f) //si collision avec le terrain, on rajoute un offset pour eviter que le prof soit trop loin dans le sol et meure instantanement
                 if (vuln) {
                     currentHP -= 1
-                    break
+                    break       //on part du principe que si c'est le prof qui touche un obstacle, il ne peut en toucher qu'un à la fois
                 }
             }
         }
+        view.removeObstacles(toRemove)
     }
 
 }

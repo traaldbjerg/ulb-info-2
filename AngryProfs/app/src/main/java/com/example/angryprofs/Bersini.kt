@@ -5,16 +5,15 @@ import android.graphics.Canvas
 import android.graphics.PointF
 import android.graphics.RectF
 
-class Bersini(
+class Bersini(var x: Float,
+    var y: Float,
     val view: CanonView
-) : ProfInter {
-    override var x = 0f
-    override var y = 0f
+) : Prof {
     override val width = 200f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
     override var vx = 0f
     override var vy = 0f
-    override val gravity = 100
+    override val gravity = 150
     override var profOnScreen = false
     override var currentHP: Int = 4
     override val name = "Bersini"
@@ -22,7 +21,6 @@ class Bersini(
         view.getResources()
             .getIdentifier("bersini", "drawable", view.getContext().getPackageName())
 
-    //pour plus general, mettre le nom de la ressource en attribut, facilement changeable a la creation d'objet
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
 
     override fun launch(angle: Double, v : Float, finCanon : PointF) {
@@ -40,10 +38,7 @@ class Bersini(
     override fun update(interval: Double) {
         if (profOnScreen) {
             vy += (interval * (gravity)).toFloat()
-            //r.offset((interval * vx).toFloat(), (interval * vy).toFloat())    ligne inutile? on change deja la position en x,y du rectangle
-            x += (interval * vx).toFloat()
-            y += (interval * vy).toFloat()
-            r = RectF(x, y, x + width, y + width * 1.2f)
+            r.offset((interval * vx).toFloat(), (interval * vy).toFloat()) //permet de ne pas changer directement les x et y => plus facile de reset les positions a la fin du tir
 
             //il faut ecrire le code de detection de chocs ici
             checkImpact(r, true)
@@ -58,22 +53,23 @@ class Bersini(
         profOnScreen = false
     }
 
-    override fun myMove() {
-
+    override fun myMove() {     //trouve une faille dans le code de ce jeu et se donne des points plutot que de se fatiguer a faire des acrobaties
+        view.addScore(2000)
     }
 
     override fun follow(v: Float) {
         vx += -v
     }
 
-    override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle, sera etendu aux etudiants par la suite
-        for (d in view.lesObstacles) {       //pas forcement super optimise s'il y a collision avec un des derniers elements
-                if (RectF.intersects(hitbox, d.r)) {
-                    d.choc(this)
-                    currentHP -= 1
-                    break
-                }
+    override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle
+        for (d in view.lesObstacles) {       //pas forcement super optimise s'il y a collision avec un des derniers elements de l'array
+            if (RectF.intersects(hitbox, d.r)) {
+                if (!d.choc(this, vuln)) //si collision avec le terrain, on rajoute un offset pour eviter que le prof soit trop loin dans le sol et meure instantanement
+                    r.offset(0f,- 10f)
+                currentHP -= 1
+                break
             }
+        }
     }
 
 }

@@ -1,55 +1,42 @@
 package com.example.angryprofs
 
-import android.graphics.*
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.RectF
 
-class Etudiant(
-    var x: Float,
-    var y: Float,
-    var length: Float,
-    var height: Float,
-    var view: CanonView
-) : ObstacleInter {
+class Etudiant(name: String,
+    override val x: Float,
+    override val y: Float,
+    override val length: Float,
+    override val height: Float,
+    override val view: CanonView
+) : Obstacle(
+    x,
+    y,
+    length,
+    height,
+    view
+) {
 
-    override var r = RectF(x, y,
+    val image =
+        view.getResources()
+            .getIdentifier(name, "drawable", view.getContext().getPackageName())
+
+    val bmp = BitmapFactory.decodeResource(view.getResources(), image)
+
+    init {
+        r = RectF(x, y,
         x + length, y + height)
-    override val paint = Paint()
-    override var vx = 0f
+        vx = 0f
+    }
 
     override fun draw(canvas: Canvas) {
-        paint.color = Color.GRAY
-        canvas.drawRect(
-            r.left, r.top, r.right,
-            r.bottom, paint
-        )
+        canvas.drawBitmap(bmp, null, r, null)
     }
 
-    override fun setRect() {
-        r.set(x, y,
-        x + length, y + height)
-    }
-
-    override fun update(interval: Double) {
-        if (vx != 0f) {
-            val move = (interval * vx).toFloat()
-            r.offset(move, 0f)
-        }
-    }
-
-    override fun choc(prof: ProfInter) {
-        //rajouter points?
+    override fun choc(prof: Prof, vuln : Boolean) : Boolean {
         view.addScore(1000)
-        view.lesObstacles.remove(this)
-        r = RectF(0f, 0f, 0f, 0f)
-    }
-
-    override fun resetCible() {
-        vx = 0f
-        r.set(x, y,
-        x + length, y + height)
-    }
-
-    override fun follow(v: Float) {
-        vx += -v
+        return true //represente si on retire l'objet des obstacles, important pour certains profs sinon ConcurrentModificationException
     }
 
 }

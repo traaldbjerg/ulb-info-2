@@ -31,20 +31,17 @@ class CanonView @JvmOverloads constructor(
     var drawing = false
     lateinit var thread: Thread
     val canon = Canon(0f, 0f, 0f, 0f, this)
-
     /*val obstacle = Obstacle(0f, 0f, 0f, 0f, 0f, this)
     val cible = Cible(0f, 0f, 0f, 0f, 0f, this)*/
     val lesObstaclesDestructibles: Array<ObstacleDestructible>
     val leTerrain: Array<Terrain>
-    //val lesEtudiants: Array<Etudiant>
-    lateinit var lesObstacles: MutableList<out ObstacleInter>
-    var lesRectangles: MutableList<RectF> = mutableListOf()
-    val rectPaint = Paint()
-    lateinit var balle: ProfInter
-    var shotsFired = 0
-    var gameOver = false
+    val lesEtudiants: Array<Etudiant>
+    var lesObstacles: MutableList<Obstacle>
+    lateinit var prof: Prof
+    //var shotsFired = 0
+    //var gameOver = false
     val activity = context as FragmentActivity
-    var totalElapsedTime = 0.0
+    var totalElapsedTime : Double
     val soundPool: SoundPool
     val soundMap: SparseIntArray
     var fired: Boolean = false
@@ -57,8 +54,8 @@ class CanonView @JvmOverloads constructor(
     var cameraSpeed = 0f
 
     init {
-        backgroundPaint.color = Color.BLUE
-        rectPaint.color = Color.RED
+        totalElapsedTime = 0.0
+        backgroundPaint.color = Color.rgb(128,234,255)
         textPaint.textSize = screenWidth / 20
         textPaint.color = Color.BLACK
         val audioAttributes = AudioAttributes.Builder()
@@ -80,7 +77,7 @@ class CanonView @JvmOverloads constructor(
         val ground = Terrain(0f, 900f, 30000f, 100f, this)
         leTerrain = arrayOf(ground)
         val obs1 = ObstacleDestructible(1000f, 600f, 200f, 900f, this)
-        /*val obs2 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
+        val obs2 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
         val obs3 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
         val obs4 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
         val obs5 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
@@ -88,16 +85,17 @@ class CanonView @JvmOverloads constructor(
         val obs7 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
         val obs8 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
         val obs9 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
-        val obs10 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)*/
+        val obs10 = ObstacleDestructible(1000f, 600f, 200f,300f, this)
         lesObstaclesDestructibles =
-            arrayOf(obs1/*, obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9, obs10*/)
-        /*val stud1 = Etudiant(3000f, 100f, 200f, 300f, this)
-        val stud2 = Etudiant(3000f, 100f, 200f, 300f, this)
+            arrayOf(obs1, obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9, obs10)
+        val stud1 = Etudiant("yeehaw", 1500f, 600f, 250f, 300f, this)
+        /*val stud2 = Etudiant(3000f, 100f, 200f, 300f, this)
         val stud3 = Etudiant(3000f, 100f, 200f, 300f, this)
-        val stud4 = Etudiant(3000f, 100f, 200f, 300f, this)
-        lesEtudiants = arrayOf(stud1, stud2, stud3, stud4)*/
+        val stud4 = Etudiant(3000f, 100f, 200f, 300f, this)*/
+        lesEtudiants = arrayOf(stud1  //, stud2, stud3, stud4
+                )
         //lesObstacles = mutableListOf(*lesObstaclesDestructibles, *leTerrain)
-        lesObstacles = mutableListOf(obs1, ground)
+        lesObstacles = mutableListOf(*lesObstaclesDestructibles, *leTerrain, *lesEtudiants)
     }
 
     fun pause() {
@@ -130,9 +128,8 @@ class CanonView @JvmOverloads constructor(
         canon.canonBaseRadius = (h / 18f)
         canon.canonLongueur = (w / 8f)
         canon.largeur = (w / 24f)
-        canon.setFinCanon(h / 2f)
-        canon.setFinCanon(h / 2f)
-        canon.v0 = (w * 3 / 2f)
+        canon.set(h / 2f)
+        //canon.v0 = (w * 3 / 2f)
 
         /*obstacle.obstacleDistance = (w * 5 / 8f)
         obstacle.obstacleDebut = (h / 8f)
@@ -168,24 +165,20 @@ class CanonView @JvmOverloads constructor(
             )
             canon.draw(canvas)
             //il faut ecrire le compteur de points ici
-            val formatted = String.format("%d", score)
+            val formatted = String.format("%1d", score)
             canvas.drawText(
-                "Score : " + formatted,
+                "Time : " + formatted,
                 30f, 50f, textPaint
             )
             if (fired) {
-                if (balle.profOnScreen) {
-                    balle.draw(canvas)
+                if (prof.profOnScreen) {
+                    prof.draw(canvas)
                 }
             }
             for (d in lesObstacles) {
                 d.draw(canvas)
             }
-            for (rect in lesRectangles) {
-                canvas.drawRect(
-                    rect, rectPaint
-                )
-            }
+
             holder.unlockCanvasAndPost(canvas)
         }
     }
@@ -201,8 +194,7 @@ class CanonView @JvmOverloads constructor(
                     alignCanon(e)
                 }
                 MotionEvent.ACTION_UP -> {
-                    chooseProf()
-                    //potentiellement faire le choix au lancement du jeu plutot qu'au tir?
+                    spawnProf(canon.finCanon)
                     fireProf(e)
                 }
             }
@@ -211,7 +203,7 @@ class CanonView @JvmOverloads constructor(
             when (action) {
                 MotionEvent.ACTION_DOWN -> {
                     moveUsed = true
-                    balle.myMove() //actionne le pouvoir
+                    prof.myMove() //actionne le pouvoir
                 }
             }
         }
@@ -219,9 +211,9 @@ class CanonView @JvmOverloads constructor(
     }
 
     fun fireProf(event: MotionEvent) {
-        if (!balle.profOnScreen) {
+        if (!prof.profOnScreen) {
             val angle = alignCanon(event)
-            balle.launch(angle, canon.v, canon.finCanon)
+            prof.launch(angle, canon.v, canon.finCanon)
             fired = true
             soundPool.play(soundMap.get(1), 1f, 1f, 1, 0, 1f)
             timeShot = System.nanoTime()
@@ -246,12 +238,14 @@ class CanonView @JvmOverloads constructor(
 
     fun updatePositions(elapsedTimeMS: Double) {
         val interval = elapsedTimeMS / 1000.0
+        canon.update(interval)
         if (fired) {
-            balle.update(interval)
+            prof.update(interval)
         }
         for (d in lesObstacles) {
             d.update(interval)
         }
+
         /*timeLeft -= interval
 
         ecrire condition d'arret du jeu ici?
@@ -262,32 +256,42 @@ class CanonView @JvmOverloads constructor(
             drawing = false
             showGameOverDialog(R.string.lose)
         }*/
+
         if (timeShot != null) {
             if (System.nanoTime().toDouble() > timeShot!!.toDouble() + 2 * 10.toDouble()
                     .pow(9) && !cameraMoves
             ) {
                 cameraMoves = true
                 timeShot = null
-                cameraSpeed = balle.vx
+                cameraSpeed = prof.vx
                 cameraFollows(cameraSpeed)
             }
         }
-        if (fired && !balle.profOnScreen) {
+
+        if (fired && !prof.profOnScreen) {
+            timeShot = null     //devrait empecher la camera de commencer a bouger juste apres que le prof soit mort mais ne fonctionne pas a tous les coups
             cameraMoves = false
             cameraFollows(-cameraSpeed) //on arrete le deplacement de la camera, peut etre a changer pour que ca s'arrete des le premier contact avec un obstacle?
             cameraSpeed = 0f
             turn += 1
             fired = false
             moveUsed = false
-            if (turn < 4)
+            if (turn < 5) {
+                drawing = false
+                reset()
                 showProfSelectionDialog(R.string.choisir_prof)
+                drawing = true
+            }
             else {
-                gameOver = true
+                drawing = false
                 turn = 1
-                if (score < 5000)
-                    showGameOverDialog(R.string.lose)
-                else
-                    showGameOverDialog(R.string.win)
+                //gameOver = true
+                if (score < 5000) {
+                    reset()
+                    showGameOverDialog(R.string.lose) }
+                else {
+                    reset()
+                    showGameOverDialog(R.string.win) }
             }
         }
     }
@@ -380,40 +384,56 @@ class CanonView @JvmOverloads constructor(
     override fun surfaceDestroyed(holder: SurfaceHolder) {}
 
     fun cameraFollows(v: Float) {
-        balle.follow(v)
+        prof.follow(v)
         canon.follow(v)
         for (d in lesObstacles)
             d.follow(v)
     }
 
-    fun gameOver() {
+    /*fun gameOver() {
         drawing = false
         showGameOverDialog(R.string.win)
         gameOver = true
-    }
+    }*/
 
     fun newGame() {
         //cible.resetCible()
         //obstacle.resetObstacle()
         //timeLeft = 10.0
-        balle.resetProf()
-        shotsFired = 0
-        totalElapsedTime = 0.0
+        //prof.resetProf()
+
+        //if (gameOver) {
+        lesObstacles = mutableListOf(
+            *lesObstaclesDestructibles,
+            *leTerrain//, lesEtudiants     on reinitialise la liste des obstacles pour une nouvelle partie
+        )
+        score = 0
+        turn = 1
+
+        //gameOver = false
         drawing = true
-        if (gameOver) {
-            gameOver = false
-            thread = Thread(this)
-            thread.start()
+        thread = Thread(this)
+        thread.start()
+        //}
+    }
+
+    fun spawnProf(point : PointF) {
+        when (name) {
+            "Haelterman" -> prof = Haelterman(point.x, point.y - 200f,this)
+            "Bersini" -> prof = Bersini(point.x, point.y - 200f,this)
+            "Bogaerts" -> prof = Bogaerts(point.x, point.y - 200f,this)
+            "Sparenberg" -> prof = Sparenberg(point.x, point.y - 200f,this)
         }
     }
 
-    fun chooseProf() {
-        when (name) {
-            "Haelterman" -> balle = Haelterman(this)
-            "Bersini" -> balle = Bersini(this)
-            "Bogaerts" -> balle = Bogaerts(this)
-            "Sparenberg" -> balle = Sparenberg(this)
-        }
+    fun reset() {
+        for (d in lesObstacles)
+            d.reset()
+        canon.reset()
+    }
+
+    fun removeObstacles(list : MutableList<Obstacle>) {
+        lesObstacles.removeAll(list)
     }
 
 }
