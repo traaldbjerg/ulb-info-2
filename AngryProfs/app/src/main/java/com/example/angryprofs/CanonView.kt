@@ -74,13 +74,14 @@ class CanonView @JvmOverloads constructor(
 
         // créer tous les obstacles, terrains etudiants et le prof ici????
 
-        val ground = Terrain(0f, 800f, 30000f, 100f, this)
+        val ground = Terrain(-20f, 800f, 30000f, 100f, this)
+        val limite = Terrain(-20f, 0f, 5f, 900f, this)
         val pre_butte = Terrain( 400f, 750f, 200f, 50f, this)
         val butte = Terrain( 600f, 600f, 200f, 200f, this)
         val trou = Terrain( 1050f, 600f, 200f, 200f, this)
         val butte2 = Terrain( 1250f, 500f, 200f, 300f, this)
         val butte3 = Terrain( 1450f, 700f, 200f, 100f, this)
-        leTerrain = arrayOf(ground, pre_butte, butte, trou, butte2, butte3)
+        leTerrain = arrayOf(ground, pre_butte, butte, trou, butte2, butte3, limite)
         val obs1 = ObstacleDestructible(800f, 600f, 50f, 200f, this)
         val obs2 = ObstacleDestructible(800f, 550f, 250f, 50f, this)
         val obs3 = ObstacleDestructible(850f, 400f, 50f, 200f, this)
