@@ -7,7 +7,7 @@ class Haelterman(var x: Float,
     var y: Float,
     val view: CanonView
 ) : Prof {
-    override val width = 100f //a changer pour une valeur exacte
+    override val width = 150f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
     override var vx = 0f
     override var vy = 0f
@@ -26,6 +26,7 @@ class Haelterman(var x: Float,
     val laserPaint = Paint()
     var x_laser : Float = x + width
     var y_laser : Float = (y + 0.25 * 1.2 * width).toFloat() + 40f
+    var waitTime = 0
 
     init {
         laserPaint.color = Color.RED
@@ -74,6 +75,7 @@ class Haelterman(var x: Float,
         laser = RectF(x_laser, y_laser, x_laser + 10000f, y_laser + 10f) //le laser
         laserTime = System.nanoTime()
         checkImpact(laser, false)
+        view.playLaserSound()
     }
 
     override fun follow(v: Float) {
@@ -92,7 +94,14 @@ class Haelterman(var x: Float,
                 }
             }
         }
-        view.removeObstacles(toRemove)
+        if (toRemove.size > 0) {
+            while (view.drawRunning) {  //on attend que le draw s'arrete pour modifier la liste des obstacles, sinon on risque CME PAS OPTIMISE ON PERD PLEIN DE TEMPS DE CALCUL
+                waitTime += 1
+            }
+            waitTime = 0
+            view.removeObstacles(toRemove)
+        }
+
     }
 
     override fun bounce(axe: String, interval : Double) {

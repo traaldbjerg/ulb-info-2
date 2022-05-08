@@ -1,13 +1,16 @@
 package com.example.angryprofs
 
 import android.graphics.*
+import android.media.AudioAttributes
+import android.media.SoundPool
+import android.util.SparseIntArray
 import kotlin.math.pow
 
 class Bogaerts(var x: Float,
     var y: Float,
     val view: CanonView
 ) : Prof {
-    override val width = 100f //a changer pour une valeur exacte
+    override val width = 150f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
     override var vx = 0f
     override var vy = 0f
@@ -24,8 +27,10 @@ class Bogaerts(var x: Float,
     val explos_image : Int = view.getResources().getIdentifier("explosion", "drawable", view.getContext().getPackageName())
     val explos_bmp = BitmapFactory.decodeResource(view.getResources(), explos_image)
     var explosTime : Long? = null
-    var x_explosion : Float = x
-    var y_explosion : Float = y
+    val explos_width = 250f
+    var x_explosion : Float = x + width / 2 - explos_width / 2
+    var y_explosion : Float = y + width / 2 * 1.2f - explos_width / 2
+    var waitTime = 0
 
     override fun launch(angle: Double, v : Float, finCanon : PointF) {
         x = finCanon.x
@@ -67,9 +72,10 @@ class Bogaerts(var x: Float,
     }
 
     override fun myMove() {     //les chimistes savent tous faire des explosifs, non?
-        explosion = RectF(x_explosion, y_explosion, x + 700f, y + 700f)
+        explosion = RectF(x_explosion, y_explosion, x_explosion + explos_width, y_explosion + explos_width)
         explosTime = System.nanoTime()
         checkImpact(explosion, false)
+        view.playBoomSound()
     }
 
     override fun follow(v: Float) {
@@ -91,7 +97,13 @@ class Bogaerts(var x: Float,
                 }
             }
         }
-        view.removeObstacles(toRemove)
+        if (toRemove.size > 0) {
+            while (view.drawRunning) {  //on attend que le draw s'arrete pour modifier la liste des obstacles, sinon on risque CME PAS OPTIMISE ON PERD PLEIN DE TEMPS DE CALCUL
+                waitTime += 1
+            }
+            waitTime = 0
+            view.removeObstacles(toRemove)
+        }
     }
 
     override fun bounce(axe: String, interval : Double) {

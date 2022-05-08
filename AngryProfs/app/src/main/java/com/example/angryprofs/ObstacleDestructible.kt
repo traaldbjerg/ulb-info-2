@@ -27,8 +27,9 @@ class ObstacleDestructible(
     }
 
     override fun choc(prof: Prof, vuln : Boolean) : Boolean {
-        if (vuln) {  //peut sembler un peu complique pour le terrain mais permet d'eventuellement faire des terrains verticaux dans le niveau
+        if (vuln) {
             if (prof.r.bottom - prof.vy * lastInterval <= r.top || prof.r.top - prof.vy * lastInterval >= r.bottom) //on verifie si le prof vient de traverser le haut ou le bas de l'obstacle
+                //pas besoin de differencier les 2 cas car s'il traverse le bas, vitesse y negative et s'il traverse le haut, vitesse y positive
                 prof.bounce("y", lastInterval)
             else
                 prof.bounce("x", lastInterval)
