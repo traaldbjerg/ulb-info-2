@@ -28,6 +28,7 @@ class Etudiant(name: String,
         r = RectF(x, y,
         x + length, y + height)
         vx = 0f
+        lastInterval = 0.0
     }
 
     override fun draw(canvas: Canvas) {

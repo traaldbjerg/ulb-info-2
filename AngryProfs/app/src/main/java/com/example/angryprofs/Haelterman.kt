@@ -57,7 +57,7 @@ class Haelterman(var x: Float,
                 profOnScreen = false
             }
             if (laserTime != null) {
-                if (System.nanoTime().toDouble() > (laserTime!! + 5f * 10.toDouble()
+                if (System.nanoTime().toDouble() > (laserTime!! + 1f * 10.toDouble()
                         .pow(8))
                 ) {
                     laserTime = null
@@ -86,16 +86,23 @@ class Haelterman(var x: Float,
             if (RectF.intersects(hitbox, d.r)) {
                 if (d.choc(this, vuln))
                     toRemove.add(d)
-                else
-                    if (vuln)
-                        r.offset(0f,  - 10f) //si collision avec le terrain, on rajoute un offset pour eviter que le prof soit trop loin dans le sol et meure instantanement
                 if (vuln) {
                     currentHP -= 1
-                    break       //on part du principe que si c'est le prof qui touche un obstacle, il ne peut en toucher qu'un à la fois
+                    break
                 }
             }
         }
         view.removeObstacles(toRemove)
+    }
+
+    override fun bounce(axe: String, interval : Double) {
+        when (axe) {
+            "y" -> {vy = vy * -1
+                    r.offset(0f, (vy * interval).toFloat() * 2)}
+            "x" -> {vx = vx * -1 - 2 * view.cameraSpeed  //il faut incrementer de -2 cameraSpeed, si la camera bouge deja alors vx = 0 donc faire * -1 ne change rien
+                    r.offset((vx * interval).toFloat() * 2, 0f)
+                    view.cameraFollows(vx)}
+        }
     }
 
 }

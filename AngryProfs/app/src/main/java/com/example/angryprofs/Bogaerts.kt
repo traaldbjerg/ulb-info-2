@@ -94,4 +94,13 @@ class Bogaerts(var x: Float,
         view.removeObstacles(toRemove)
     }
 
+    override fun bounce(axe: String, interval : Double) {
+        when (axe) {
+            "y" -> {vy = vy * -1
+                    r.offset(0f, (vy * interval).toFloat() * 2)}
+            "x" -> {vx = vx * -1 - 2 * view.cameraSpeed  //il faut incrementer de -2 cameraSpeed, si la camera bouge deja alors vx = 0 donc faire * -1 ne change rien
+                    r.offset((vx * interval).toFloat() * 2, 0f)
+                    view.cameraFollows(vx)}
+        }
+    }
 }

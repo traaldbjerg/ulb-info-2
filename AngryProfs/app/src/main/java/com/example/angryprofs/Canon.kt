@@ -83,6 +83,7 @@ class Canon(
     fun reset() {
         finCanon = PointF(canonLongueur, view.screenHeight - 50f)
         baseCanon = PointF(0f, view.screenHeight - 50f)
+        vx = 0f
     }
 
 }

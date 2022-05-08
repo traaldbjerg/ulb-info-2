@@ -60,11 +60,22 @@ class Sparenberg(var x: Float,
     override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle
         for (d in view.lesObstacles) {       //pas forcement super optimise s'il y a collision avec un des derniers elements de l'array
             if (RectF.intersects(hitbox, d.r)) {
-                if (!d.choc(this, vuln)) //si collision avec le terrain, on rajoute un offset pour eviter que le prof soit trop loin dans le sol et meure instantanement
-                    r.offset(0f,  - 10f)
                 currentHP -= 1
-                break
+                if(d.choc(this, vuln)) {    //un peu alambiqué mais coherent avec la facon de faire pour haelterman et bogaerts
+                    view.removeObstacles(mutableListOf(d))
+                }
+                break       //on part du principe que les profs sans projectiles ne peuvent toucher qu'un obstacle a la fois
             }
+        }
+    }
+
+    override fun bounce(axe: String, interval : Double) {
+        when (axe) {
+            "y" -> {vy = vy * -1
+                    r.offset(0f, (vy * interval).toFloat() * 2)}
+            "x" -> {vx = vx * -1 - 2 * view.cameraSpeed  //il faut incrementer de -2 cameraSpeed, si la camera bouge deja alors vx = 0 donc faire * -1 ne change rien
+                    r.offset((vx * interval).toFloat() * 2, 0f)
+                    view.cameraFollows(vx)}
         }
     }
 

@@ -74,7 +74,7 @@ class CanonView @JvmOverloads constructor(
 
         // créer tous les obstacles, terrains etudiants et le prof ici????
 
-        val ground = Terrain(0f, 900f, 30000f, 100f, this)
+        val ground = Terrain(-30000f, 900f, 60000f, 100f, this)
         leTerrain = arrayOf(ground)
         val obs1 = ObstacleDestructible(1000f, 600f, 200f, 900f, this)
         val obs2 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
@@ -87,7 +87,8 @@ class CanonView @JvmOverloads constructor(
         val obs9 = ObstacleDestructible(1000f, 600f, 200f, 300f, this)
         val obs10 = ObstacleDestructible(1000f, 600f, 200f,300f, this)
         lesObstaclesDestructibles =
-            arrayOf(obs1, obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9, obs10)
+            arrayOf(obs1//, obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9, obs10
+                )
         val stud1 = Etudiant("yeehaw", 1500f, 600f, 250f, 300f, this)
         /*val stud2 = Etudiant(3000f, 100f, 200f, 300f, this)
         val stud3 = Etudiant(3000f, 100f, 200f, 300f, this)
@@ -167,8 +168,8 @@ class CanonView @JvmOverloads constructor(
             //il faut ecrire le compteur de points ici
             val formatted = String.format("%1d", score)
             canvas.drawText(
-                "Time : " + formatted,
-                30f, 50f, textPaint
+                "Score : " + formatted,
+                30f, 100f, textPaint
             )
             if (fired) {
                 if (prof.profOnScreen) {
@@ -230,8 +231,6 @@ class CanonView @JvmOverloads constructor(
         var angle = 0.0     //ATTENTION L'ANGLE N'EST PAS HABITUEL, PART DE oY VERS oX
         if (centerMinusY != 0.0f)
             angle = Math.atan((touchPoint.x).toDouble() / centerMinusY)
-        //if (touchPoint.y > screenHeight)
-            //angle += Math.PI
         canon.align(angle)
         return angle
     }
@@ -246,25 +245,13 @@ class CanonView @JvmOverloads constructor(
             d.update(interval)
         }
 
-        /*timeLeft -= interval
-
-        ecrire condition d'arret du jeu ici?
-
-        if (timeLeft <= 0) {
-            timeLeft = 0.0
-            gameOver = true
-            drawing = false
-            showGameOverDialog(R.string.lose)
-        }*/
-
         if (timeShot != null) {
             if (System.nanoTime().toDouble() > timeShot!!.toDouble() + 2 * 10.toDouble()
                     .pow(9) && !cameraMoves
             ) {
                 cameraMoves = true
                 timeShot = null
-                cameraSpeed = prof.vx
-                cameraFollows(cameraSpeed)
+                cameraFollows(prof.vx)
             }
         }
 
@@ -277,10 +264,8 @@ class CanonView @JvmOverloads constructor(
             fired = false
             moveUsed = false
             if (turn < 5) {
-                drawing = false
                 reset()
                 showProfSelectionDialog(R.string.choisir_prof)
-                drawing = true
             }
             else {
                 drawing = false
@@ -340,19 +325,19 @@ class CanonView @JvmOverloads constructor(
                     )
                 )
                 builder.setNeutralButton(R.string.ch_haelti,
-                    DialogInterface.OnClickListener { _, _ -> name = "Haelterman" }
+                    DialogInterface.OnClickListener { _, _ -> name = "Haelterman" ; }
                 )
                 builder.setNeutralButton(R.string.ch_bog,
-                    DialogInterface.OnClickListener { _, _ -> name = "Bogaerts" }
+                    DialogInterface.OnClickListener { _, _ -> name = "Bogaerts" ; }
                 )
                 builder.setNeutralButton(R.string.ch_bers,
-                    DialogInterface.OnClickListener { _, _ -> name = "Bersini" }
+                    DialogInterface.OnClickListener { _, _ -> name = "Bersini" ; }
                 )
-                builder.setNeutralButton(R.string.ch_spar,
-                    DialogInterface.OnClickListener { _, _ -> name = "Sparenberg" }
-                )
+                //builder.setNeutralButton(R.string.ch_spar,
+                    //DialogInterface.OnClickListener { _, _ -> name = "Sparenberg" ; }
+                //)
                 builder.setPositiveButton(R.string.ok,
-                    DialogInterface.OnClickListener { _, _ ->  }
+                    DialogInterface.OnClickListener { _, _ -> }
                 )
                 return builder.create()
             }
@@ -383,7 +368,8 @@ class CanonView @JvmOverloads constructor(
     override fun surfaceCreated(holder: SurfaceHolder) {}
     override fun surfaceDestroyed(holder: SurfaceHolder) {}
 
-    fun cameraFollows(v: Float) {
+    fun cameraFollows(v: Float) {  //on simule le deplacement d'une camera en faisant se deplacer tous les objets a des vitesses non nulles
+        cameraSpeed = v
         prof.follow(v)
         canon.follow(v)
         for (d in lesObstacles)
@@ -405,7 +391,7 @@ class CanonView @JvmOverloads constructor(
         //if (gameOver) {
         lesObstacles = mutableListOf(
             *lesObstaclesDestructibles,
-            *leTerrain//, lesEtudiants     on reinitialise la liste des obstacles pour une nouvelle partie
+            *leTerrain, *lesEtudiants     //on reinitialise la liste des obstacles pour une nouvelle partie
         )
         score = 0
         turn = 1

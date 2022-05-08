@@ -29,4 +29,6 @@ interface Prof {
 
     fun checkImpact(hitbox: RectF, vuln : Boolean)
 
+    fun bounce(axe : String, interval : Double)
+
 }

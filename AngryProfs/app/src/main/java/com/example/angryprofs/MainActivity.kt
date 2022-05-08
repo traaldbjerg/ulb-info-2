@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
-import android.widget.Button
 
 class MainActivity: AppCompatActivity() {
     lateinit var canonView: CanonView
@@ -15,30 +14,7 @@ class MainActivity: AppCompatActivity() {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         setContentView(R.layout.activity_main)
         canonView = findViewById<CanonView>(R.id.vMain)
-
-        val haelt : Button = findViewById(R.id.Haelti_button)
-        val spar : Button = findViewById(R.id.Spar_button)
-        val bog : Button = findViewById(R.id.Bog_button)
-        val bers : Button = findViewById(R.id.Bers_button)
-
-        haelt.setOnClickListener{
-            canonView.name = "Haelterman"
-        }
-
-        spar.setOnClickListener{
-            canonView.name = "Sparenberg"
-        }
-
-        bog.setOnClickListener{
-            canonView.name = "Bogaerts"
-        }
-
-        bers.setOnClickListener{
-            canonView.name = "Bersini"
-        }
-
     }
-
 
     override fun onPause() {
         super.onPause()
@@ -49,4 +25,5 @@ class MainActivity: AppCompatActivity() {
         super.onResume()
         canonView.resume()
     }
+
 }

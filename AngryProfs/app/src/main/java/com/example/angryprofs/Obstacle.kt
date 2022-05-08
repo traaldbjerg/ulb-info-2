@@ -16,6 +16,7 @@ abstract class Obstacle(
         x + length, y + height)
     open val paint = Paint()
     open var vx = 0f
+    open var lastInterval = 0.0
 
     open fun draw(canvas: Canvas) {
         canvas.drawRect(
@@ -30,6 +31,7 @@ abstract class Obstacle(
     }
 
     open fun update(interval: Double) {
+        lastInterval = interval
         if (vx != 0f) {
             var move = (interval * vx).toFloat()
             r.offset(move, 0f)
