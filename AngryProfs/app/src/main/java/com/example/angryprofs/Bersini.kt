@@ -9,7 +9,7 @@ class Bersini(var x: Float,
     var y: Float,
     val view: CanonView
 ) : Prof {
-    override val width = 200f //a changer pour une valeur exacte
+    override val width = 100f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
     override var vx = 0f
     override var vy = 0f
