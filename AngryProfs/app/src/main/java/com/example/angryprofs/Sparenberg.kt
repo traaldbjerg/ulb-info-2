@@ -1,12 +1,14 @@
 package com.example.angryprofs
 
 import android.graphics.*
+import kotlin.random.Random
 
-class Sparenberg(var x: Float,
+class Sparenberg(
+    var x: Float,
     var y: Float,
     val view: CanonView
 ) : Prof {
-    override val width = 100f //a changer pour une valeur exacte
+    override val width = 150f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
     override var vx = 0f
     override var vy = 0f
@@ -19,8 +21,9 @@ class Sparenberg(var x: Float,
             .getIdentifier("sparenberg", "drawable", view.getContext().getPackageName())
 
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
+    var waitTime = 0
 
-    override fun launch(angle: Double, v : Float, finCanon : PointF) {
+    override fun launch(angle: Double, v: Float, finCanon: PointF) {
         x = finCanon.x
         y = finCanon.y - width / 2
         vx = (v * Math.sin(angle)).toFloat()
@@ -35,7 +38,10 @@ class Sparenberg(var x: Float,
     override fun update(interval: Double) {
         if (profOnScreen) {
             vy += (interval * (gravity)).toFloat()
-            r.offset((interval * vx).toFloat(), (interval * vy).toFloat()) //permet de ne pas changer directement les x et y => plus facile de reset les positions a la fin du tir
+            r.offset(
+                (interval * vx).toFloat(),
+                (interval * vy).toFloat()
+            ) //permet de ne pas changer directement les x et y => plus facile de reset les positions a la fin du tir
 
             //il faut ecrire le code de detection de chocs ici
             checkImpact(r, true)
@@ -49,19 +55,34 @@ class Sparenberg(var x: Float,
         profOnScreen = false
     }
 
-    override fun myMove() {     //se teleporte par effet tunnel, n'a qu'une certaine probabilite de passer la barriere de potentiel!
-        r.offset(600f, 0f)
+    override fun myMove() {     //se teleporte par effet tunnel, on vous epargne les calculs mais la reflexion sur la barriere de potentiel a une probabilite de 0.5!
+        val reflexion = Random.nextInt(0, 2)
+        if (reflexion == 0)
+            r.offset(600f, 0f)
+        else
+            bounce("x", 0.0)
     }
 
     override fun follow(v: Float) {
         vx += -v
     }
 
-    override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle
+    override fun checkImpact(
+        hitbox: RectF,
+        vuln: Boolean
+    ) {       //verifie s'il y a une intersection avec un obstacle
         for (d in view.lesObstacles) {       //pas forcement super optimise s'il y a collision avec un des derniers elements de l'array
             if (RectF.intersects(hitbox, d.r)) {
                 currentHP -= 1
-                if(d.choc(this, vuln)) {    //un peu alambiqué mais coherent avec la facon de faire pour haelterman et bogaerts
+                if (d.choc(
+                        this,
+                        vuln
+                    )
+                ) { //un peu alambiqué mais coherent avec la facon de faire pour haelterman et bogaerts
+                    while (view.drawRunning) {  //on attend que le draw s'arrete pour modifier la liste des obstacles, sinon on risque CME PAS OPTIMISE ON PERD PLEIN DE TEMPS DE CALCUL
+                        waitTime += 1
+                    }
+                    waitTime = 0
                     view.removeObstacles(mutableListOf(d))
                 }
                 break       //on part du principe que les profs sans projectiles ne peuvent toucher qu'un obstacle a la fois
@@ -69,13 +90,20 @@ class Sparenberg(var x: Float,
         }
     }
 
-    override fun bounce(axe: String, interval : Double) {
+    override fun bounce(axe: String, interval: Double) {
         when (axe) {
-            "y" -> {vy = vy * -1
-                    r.offset(0f, (vy * interval).toFloat() * 2)}
-            "x" -> {vx = vx * -1 - 2 * view.cameraSpeed  //il faut incrementer de -2 cameraSpeed, si la camera bouge deja alors vx = 0 donc faire * -1 ne change rien
-                    r.offset((vx * interval).toFloat() * 2, 0f)
-                    view.cameraFollows(vx)}
+            "y" -> {
+                vy = vy * -1
+                r.offset(0f, (vy * interval).toFloat() * 2)
+            }
+            "x" -> {
+                if (view.cameraSpeed > 0)
+                    vx = vx * -1 - 2 * view.cameraSpeed  //il faut incrementer de -2 cameraSpeed, si la camera bouge deja alors vx = 0 donc faire * -1 ne change rien
+                else
+                    vx = vx * -1 - 2 * view.cameraSpeed
+                r.offset((vx * interval).toFloat() * 2, 0f)
+                view.cameraFollows(vx)
+            }
         }
     }
 

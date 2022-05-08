@@ -15,8 +15,8 @@ class Canon(
 ) {
     val canonPaint = Paint()
     val visPaint = Paint()
-    var finCanon = PointF(canonLongueur, view.screenHeight - 50f)
-    var baseCanon = PointF(0f, view.screenHeight - 50f)
+    var finCanon = PointF(canonLongueur, view.screenHeight - 150f)
+    var baseCanon = PointF(0f, view.screenHeight - 100f)
     var pointVis1: PointF? = PointF(0f, 0f)    //juste pour avoir une idée d'où on vise
     var pointVis2: PointF? = PointF(0f, 0f)
     var pointVis3: PointF? = PointF(0f, 0f)
@@ -31,6 +31,8 @@ class Canon(
 
     init {
         visPaint.color = Color.RED
+        align(Math.PI / 4)
+        update(0.0) //pour que les points de visée commencent au bon endroit
     }
 
     fun update(interval : Double) {
@@ -57,9 +59,9 @@ class Canon(
         }
     }
 
-    fun set(hauteur: Float) {
-        finCanon.set(canonLongueur, view.screenHeight - hauteur - 50f)
-        baseCanon.set(0f, view.screenHeight - 50f)
+    fun set() {
+        finCanon.set(canonLongueur - 50f, view.screenHeight - 150f)
+        baseCanon.set(0f, view.screenHeight - 100f)
     }
 
     fun align(angle: Double) {      //une grosse partie de cette methode est passe dans update afin de permettre la mise a jour en direct des points de visee
@@ -81,9 +83,11 @@ class Canon(
     }
 
     fun reset() {
-        finCanon = PointF(canonLongueur, view.screenHeight - 50f)
-        baseCanon = PointF(0f, view.screenHeight - 50f)
+        finCanon = PointF(canonLongueur - 50f, view.screenHeight - 150f)
+        baseCanon = PointF(0f, view.screenHeight - 100f)
         vx = 0f
+        align(Math.PI / 4)
+        update(0.0)
     }
 
 }

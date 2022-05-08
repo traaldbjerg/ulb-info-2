@@ -4,12 +4,13 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.PointF
 import android.graphics.RectF
+import android.widget.Toast
 
 class Bersini(var x: Float,
     var y: Float,
     val view: CanonView
 ) : Prof {
-    override val width = 100f //a changer pour une valeur exacte
+    override val width = 150f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)
     override var vx = 0f
     override var vy = 0f
@@ -22,6 +23,7 @@ class Bersini(var x: Float,
             .getIdentifier("bersini", "drawable", view.getContext().getPackageName())
 
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
+    var waitTime = 0
 
     override fun launch(angle: Double, v : Float, finCanon : PointF) {
         x = finCanon.x
@@ -52,8 +54,23 @@ class Bersini(var x: Float,
         profOnScreen = false
     }
 
-    override fun myMove() {     //trouve une faille dans le code de ce jeu et se donne des points plutot que de se fatiguer a faire des acrobaties
-        view.addScore(2000)
+    override fun myMove() {     //trouve une faille dans le code de ce jeu et massacre tous les etudiants du premier coup
+        val toRemove : MutableList<Obstacle> = mutableListOf()
+        for (d in view.lesEtudiants) {
+            if (d in view.lesObstacles) {  //pour empecher Mr. Bersini de retuer tous les etudiants alors qu'ils sont deja morts
+                d.choc(this, false)
+                toRemove.add(d)
+            }
+        }
+        val text = "Mr. Bersini a trouvé et exploité une faille dans le code du jeu!"
+        val duration = Toast.LENGTH_LONG
+        val toast = Toast.makeText(view.activity, text, duration)
+        toast.show()
+        while (view.drawRunning) {  //on attend que le draw s'arrete pour modifier la liste des obstacles, sinon on risque CME, PAS OPTIMISE ON PERD DU TEMPS DE CALCUL
+                waitTime += 1
+            }
+            waitTime = 0
+            view.removeObstacles(toRemove)
     }
 
     override fun follow(v: Float) {
@@ -65,7 +82,11 @@ class Bersini(var x: Float,
             if (RectF.intersects(hitbox, d.r)) {
                 currentHP -= 1
                 if(d.choc(this, vuln)) {
-                    view.removeObstacles(mutableListOf(d))
+                    while (view.drawRunning) {  //on attend que le draw s'arrete pour modifier la liste des obstacles, sinon on risque CME PAS OPTIMISE ON PERD PLEIN DE TEMPS DE CALCUL
+                        waitTime += 1
+                        }
+                        waitTime = 0
+                        view.removeObstacles(mutableListOf(d))
                 }
                 break       //on part du principe que les profs sans projectiles ne peuvent toucher qu'un obstacle a la fois
             }

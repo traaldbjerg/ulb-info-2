@@ -49,9 +49,11 @@ class CanonView @JvmOverloads constructor(
     var timeShot: Long? = null
     var cameraMoves: Boolean = false
     var score: Int = 0
+    val scoreVictoire = 10000
     var turn : Int = 1
-    var name : String = "Haelterman"
+    var name : String = "Bogaerts"
     var cameraSpeed = 0f
+    var drawRunning = false
 
     init {
         totalElapsedTime = 0.0
@@ -67,20 +69,23 @@ class CanonView @JvmOverloads constructor(
             .setMaxStreams(1)
             .setAudioAttributes(audioAttributes)
             .build()
-        soundMap = SparseIntArray(3)
+        soundMap = SparseIntArray(5)
         soundMap.put(0, soundPool.load(context, R.raw.target_hit, 1))
         soundMap.put(1, soundPool.load(context, R.raw.canon_fire, 1))
         soundMap.put(2, soundPool.load(context, R.raw.blocker_hit, 1))
+        soundMap.put(3, soundPool.load(context, R.raw.explosion, 1))
+        soundMap.put(4, soundPool.load(context, R.raw.blaster, 1))
 
         // créer tous les obstacles, terrains etudiants et le prof ici????
 
-        val ground = Terrain(0f, 800f, 30000f, 100f, this)
+        val ground = Terrain(-1500f, 800f, 30000f, 100f, this)
+        val limite = Terrain(-1500f, 0f, 1480f, 900f, this)
         val pre_butte = Terrain( 400f, 750f, 200f, 50f, this)
         val butte = Terrain( 600f, 600f, 200f, 200f, this)
         val trou = Terrain( 1050f, 600f, 200f, 200f, this)
         val butte2 = Terrain( 1250f, 500f, 200f, 300f, this)
         val butte3 = Terrain( 1450f, 700f, 200f, 100f, this)
-        leTerrain = arrayOf(ground, pre_butte, butte, trou, butte2, butte3)
+        leTerrain = arrayOf(ground, pre_butte, butte, trou, butte2, butte3, limite)
         val obs1 = ObstacleDestructible(800f, 600f, 50f, 200f, this)
         val obs2 = ObstacleDestructible(800f, 550f, 250f, 50f, this)
         val obs3 = ObstacleDestructible(850f, 400f, 50f, 200f, this)
@@ -104,15 +109,14 @@ class CanonView @JvmOverloads constructor(
             )
         val stud1 = Etudiant("yeehaw", 855f, 640f, 140f, 170f, this)
         val stud2 = Etudiant("c_qui_ca",905f, 400f, 120f, 150f, this)
-        val stud3 = Etudiant("c_qui_ca",905f, 0f, 120f, 150f, this)
+        val stud3 = Etudiant("laiba_la_bg",905f, 0f, 120f, 150f, this)
         val stud4 = Etudiant("yeehaw", 1090f, 300f, 140f, 170f, this)
         val stud5 = Etudiant("c_qui_ca",1270f, 350f, 120f, 150f, this)
         val stud6 = Etudiant("yeehaw", 1480f, 550f, 140f, 170f, this)
-        val stud7 = Etudiant("yeehaw", 1480f, 0f, 140f, 170f, this)
-        val stud8 = Etudiant("c_qui_ca",1770f, 0f, 120f, 150f, this)
+        val stud7 = Etudiant("laiba_la_bg", 1480f, 0f, 140f, 170f, this)
+        val stud8 = Etudiant("laiba_la_bg",1770f, 0f, 120f, 150f, this)
         val stud9 = Etudiant("c_qui_ca",1950f, 650f, 120f, 150f, this)
         lesEtudiants = arrayOf(stud1  , stud2, stud3, stud4, stud5, stud6, stud7, stud8, stud9 )
-        //lesObstacles = mutableListOf(*lesObstaclesDestructibles, *leTerrain)
         lesObstacles = mutableListOf(*lesObstaclesDestructibles, *leTerrain, *lesEtudiants)
     }
 
@@ -146,7 +150,7 @@ class CanonView @JvmOverloads constructor(
         canon.canonBaseRadius = (h / 18f)
         canon.canonLongueur = (w / 8f)
         canon.largeur = (w / 24f)
-        canon.set(h / 2f)
+        canon.set()
         //canon.v0 = (w * 3 / 2f)
 
         /*obstacle.obstacleDistance = (w * 5 / 8f)
@@ -174,8 +178,17 @@ class CanonView @JvmOverloads constructor(
         soundPool.play(soundMap.get(0), 1f, 1f, 1, 0, 1f)
     }
 
+    fun playBoomSound() {
+        soundPool.play(soundMap.get(3), 1f, 1f, 1, 0, 1f)
+    }
+
+    fun playLaserSound() {
+        soundPool.play(soundMap.get(4), 1f, 1f, 1, 0, 1f)
+    }
+
     fun draw() {
         if (holder.surface.isValid) {
+            drawRunning = true
             canvas = holder.lockCanvas()
             canvas.drawRect(
                 0f, 0f, canvas.width.toFloat(),
@@ -183,11 +196,6 @@ class CanonView @JvmOverloads constructor(
             )
             canon.draw(canvas)
             //il faut ecrire le compteur de points ici
-            val formatted = String.format("%1d", score)
-            canvas.drawText(
-                "Score : " + formatted,
-                30f, 100f, textPaint
-            )
             if (fired) {
                 if (prof.profOnScreen) {
                     prof.draw(canvas)
@@ -196,8 +204,13 @@ class CanonView @JvmOverloads constructor(
             for (d in lesObstacles) {
                 d.draw(canvas)
             }
-
+            val formatted = String.format("%1d", score)     //on dessine le score a la fin pour qu'il se superpose sur le reste
+            canvas.drawText(
+                "Score : " + formatted,
+                30f, 100f, textPaint
+            )
             holder.unlockCanvasAndPost(canvas)
+            drawRunning = false
         }
     }
 
@@ -282,13 +295,13 @@ class CanonView @JvmOverloads constructor(
             moveUsed = false
             if (turn < 5) {
                 reset()
-                showProfSelectionDialog(R.string.choisir_prof)
+                //showProfSelectionDialog(R.string.choisir_prof)
             }
             else {
                 drawing = false
                 turn = 1
                 //gameOver = true
-                if (score < 5000) {
+                if (score < scoreVictoire) {
                     reset()
                     showGameOverDialog(R.string.lose) }
                 else {
@@ -350,9 +363,9 @@ class CanonView @JvmOverloads constructor(
                 builder.setNeutralButton(R.string.ch_bers,
                     DialogInterface.OnClickListener { _, _ -> name = "Bersini" ; }
                 )
-                //builder.setNeutralButton(R.string.ch_spar,
-                    //DialogInterface.OnClickListener { _, _ -> name = "Sparenberg" ; }
-                //)
+                builder.setNeutralButton(R.string.ch_spar,
+                    DialogInterface.OnClickListener { _, _ -> name = "Sparenberg" ; }
+                )
                 builder.setPositiveButton(R.string.ok,
                     DialogInterface.OnClickListener { _, _ -> }
                 )
@@ -386,7 +399,7 @@ class CanonView @JvmOverloads constructor(
     override fun surfaceDestroyed(holder: SurfaceHolder) {}
 
     fun cameraFollows(v: Float) {  //on simule le deplacement d'une camera en faisant se deplacer tous les objets a des vitesses non nulles
-        cameraSpeed = v
+        cameraSpeed += v
         prof.follow(v)
         canon.follow(v)
         for (d in lesObstacles)
@@ -410,6 +423,7 @@ class CanonView @JvmOverloads constructor(
             *lesObstaclesDestructibles,
             *leTerrain, *lesEtudiants     //on reinitialise la liste des obstacles pour une nouvelle partie
         )
+        reset()
         score = 0
         turn = 1
 
