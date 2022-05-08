@@ -1,8 +1,15 @@
 <resources>
 
-    <string name="app_name">unJeuCanon</string>
+    <string name="app_name">Angry Profs</string>
+    <string name="choisir_prof">Choisissez votre chair à canon</string>
     <string name="win">Victoire</string>
     <string name="lose">Défaite</string>
-    <string name="results_format" formatted="true">Nombre de tirs: %1$d \nTemps écoulé: %2$f</string>
+    <string name="results_format" formatted="true">Score actuel: %1$d</string>
     <string name="reset_game">Nouvelle partie</string>
+    <string name="ch_haelti">Haelterman</string>
+    <string name="ch_bog">Bogaerts</string>
+    <string name="ch_bers">Bersini</string>
+    <string name="ch_spar">Sparenberg</string>
+    <string name="ok">OK</string>
+
 </resources>
