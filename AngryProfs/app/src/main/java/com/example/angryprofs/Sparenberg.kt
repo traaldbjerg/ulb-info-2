@@ -53,7 +53,7 @@ class Sparenberg(
     override fun myMove() {     //se teleporte par effet tunnel, on vous epargne les calculs mais la reflexion sur la barriere de potentiel a une probabilite de 0.5 !
         val reflexion = Random.nextInt(0, 2)
         if (reflexion == 0)
-            r.offset(600f * view.cameraSpeed.sign + vx * 600f, 0f)  //si vx est nul, alors view.cameraSpeed ne l'est pas et vice versa -> se teleporte toujours dans le bon sens
+            r.offset(600f * view.cameraSpeed.sign + vx.sign * 600f, 0f)  //si vx est nul, alors view.cameraSpeed ne l'est pas et vice versa -> se teleporte toujours dans le bon sens
         else {
             bounce("x", 0.0)
             view.playSadSound() //c'est quand meme pas de chance :(
