@@ -14,10 +14,10 @@ class Haelterman(var x: Float,
     override val gravity = 150
     override var profOnScreen = false
     override var currentHP: Int = 4
-    override val name = "Haelterman" //inutile je pense
+    override val name = "haelterman"
     override val image =
         view.getResources()
-            .getIdentifier("haelterman", "drawable", view.getContext().getPackageName())
+            .getIdentifier(name, "drawable", view.getContext().getPackageName())
 
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
 
@@ -26,7 +26,6 @@ class Haelterman(var x: Float,
     val laserPaint = Paint()
     var x_laser : Float = x + width
     var y_laser : Float = (y + 0.25 * 1.2 * width).toFloat() + 40f
-    var waitTime = 0
 
     init {
         laserPaint.color = Color.RED
@@ -34,16 +33,18 @@ class Haelterman(var x: Float,
 
     override fun launch(angle: Double, v : Float, finCanon : PointF) {
         x = finCanon.x
-        y = finCanon.y - width
+        y = finCanon.y - width / 2 * 1.2f  //pour que le milieu du prof soit a la hauteur du milieu du canon lors du tir
         vx = (v * Math.sin(angle)).toFloat()
         vy = (-v * Math.cos(angle)).toFloat()
         profOnScreen = true
     }
 
     override fun draw(canvas: Canvas) {
-        canvas.drawBitmap(bmp, null, r, null)
-        if (laserTime != null)
+        if (laserTime != null) {
             canvas.drawRect(laser, laserPaint)
+        }
+        canvas.drawBitmap(bmp, null, r, null)  //en dessinant Haelterman apres le laser, il se superpose a celui-ci, ce qui donne l'impression que le laser sort de ses yeux!
+
     }
 
     override fun update(interval: Double) {
@@ -52,10 +53,10 @@ class Haelterman(var x: Float,
             x_laser += (interval * vx).toFloat()  //pour changer la position de tir du laser
             y_laser += (interval * vy).toFloat()
             r.offset((interval * vx).toFloat(), (interval * vy).toFloat()) //permet de ne pas changer directement les x et y => plus facile de reset les positions a la fin du tir
-            //il faut ecrire le code de detection de chocs ici
             checkImpact(r, true)
             if (currentHP == 0) {
-                profOnScreen = false
+                profOnScreen = false    // on arrete d'afficher le prof
+                view.nextTurn()    //on passe au prochain tour
             }
             if (laserTime != null) {
                 if (System.nanoTime().toDouble() > (laserTime!! + 1f * 10.toDouble()
@@ -67,10 +68,6 @@ class Haelterman(var x: Float,
         }
     }
 
-    override fun resetProf() {
-        profOnScreen = false
-    }
-
     override fun myMove() {     //tire des lasers par les yeux (aurait pu etre le pouvoir de Mr. Gorza)
         laser = RectF(x_laser, y_laser, x_laser + 10000f, y_laser + 10f) //le laser
         laserTime = System.nanoTime()
@@ -78,7 +75,7 @@ class Haelterman(var x: Float,
         view.playLaserSound()
     }
 
-    override fun follow(v: Float) {
+    override fun follow(v: Float) {     //change la vitesse du professeur afin de simuler le suivi du prof par la camera
         vx += -v
     }
 
@@ -90,18 +87,13 @@ class Haelterman(var x: Float,
                     toRemove.add(d)
                 if (vuln) {
                     currentHP -= 1
-                    break
+                    break   //on part du principe que le prof ne peut toucher qu'un obstacle a la fois
                 }
             }
         }
         if (toRemove.size > 0) {
-            while (view.drawRunning) {  //on attend que le draw s'arrete pour modifier la liste des obstacles, sinon on risque CME PAS OPTIMISE ON PERD PLEIN DE TEMPS DE CALCUL
-                waitTime += 1
-            }
-            waitTime = 0
             view.removeObstacles(toRemove)
         }
-
     }
 
     override fun bounce(axe: String, interval : Double) {

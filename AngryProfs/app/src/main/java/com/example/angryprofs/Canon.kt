@@ -1,15 +1,11 @@
 package com.example.angryprofs
 
-import android.graphics.Paint
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.PointF
+import android.graphics.*
 import kotlin.math.pow
 
 class Canon(
     var canonBaseRadius: Float,
     var canonLongueur: Float,
-    hauteur: Float,
     var largeur: Float,
     val view: CanonView
 ) {
@@ -17,17 +13,19 @@ class Canon(
     val visPaint = Paint()
     var finCanon = PointF(canonLongueur, view.screenHeight - 150f)
     var baseCanon = PointF(0f, view.screenHeight - 100f)
-    var pointVis1: PointF? = PointF(0f, 0f)    //juste pour avoir une idée d'où on vise
-    var pointVis2: PointF? = PointF(0f, 0f)
-    var pointVis3: PointF? = PointF(0f, 0f)
-    var pointVis4: PointF? = PointF(0f, 0f)
+    var pointVis1: PointF = PointF(0f, 0f)    //juste pour avoir une idée d'où on vise
+    var pointVis2: PointF = PointF(0f, 0f)
+    var pointVis3: PointF = PointF(0f, 0f)
+    var pointVis4: PointF = PointF(0f, 0f)
     val gravity = 150
     var vx = 0f
-    var v0 = 400f
-    var v = v0
-    var currentTime = 0.0f
-    var currentAngle : Double = 0.0
-    var dx = 0f
+    var v0 = 400f    //vitesse maximale que peut atteindre le projectile
+    var v = v0      //vitesse a laquelle sera tire le projectile, mise a jour a chaque appel de update(interval)
+    var currentTime = 0.0f      //permet de mettre a jour l'effet de jauge dans la methode update(interval)
+    var currentAngle : Double = 0.0   //permet de sauvegarder un angle afin que les points de visee puissent utiliser les formules de tir oblique dans update(interval)
+    var dx = 0f    //represente l'espacement horizontal entre les points de visee (depend de la vitesse v)
+    var jauge = RectF(50f, 400f, 80f, 400f)
+    val jauge_height = 150f
 
     init {
         visPaint.color = Color.RED
@@ -35,11 +33,12 @@ class Canon(
         update(0.0) //pour que les points de visée commencent au bon endroit
     }
 
-    fun update(interval : Double) {
+    fun update(interval : Double) {     //sert a mettre a jour les positions des 4 points de visee et la position du canon lorsqu'il faut faire le suivi de camera
         finCanon.offset(vx * interval.toFloat() , 0f)
         baseCanon.offset(vx * interval.toFloat() , 0f)
         currentTime = view.totalElapsedTime.toFloat()
-        v = v0 * (Math.cos(currentTime * Math.PI / 4).toFloat()).pow(2) //simule un effet de jauge, il reste encore à la dessiner
+        v = v0 * Math.abs((Math.sin(currentTime * Math.PI / 6).toFloat())) //simule un effet de jauge, il reste encore à la dessiner
+        jauge = RectF(50f, 550f - Math.abs((Math.sin(currentTime * Math.PI / 6).toFloat())) * jauge_height, 80f, 550f)
         dx = (Math.sin(currentAngle) * v).toFloat()
         pointVis1 = PointF(finCanon.x + dx, finCanon.y + trajTirOblique(currentAngle, dx))
         pointVis2 = PointF(finCanon.x + 2 * dx, finCanon.y + trajTirOblique(currentAngle, 2 * dx))
@@ -52,10 +51,11 @@ class Canon(
         canvas.drawLine( baseCanon.x, baseCanon.y, finCanon.x, finCanon.y, canonPaint)
         canvas.drawCircle(baseCanon.x, baseCanon.y, canonBaseRadius, canonPaint)
         if (!view.fired) {
-            canvas.drawCircle(pointVis1!!.x, pointVis1!!.y, 10f, visPaint)
-            canvas.drawCircle(pointVis2!!.x, pointVis2!!.y, 10f, visPaint)
-            canvas.drawCircle(pointVis3!!.x, pointVis3!!.y, 10f, visPaint)
-            canvas.drawCircle(pointVis4!!.x, pointVis4!!.y, 10f, visPaint)
+            canvas.drawCircle(pointVis1.x, pointVis1.y, 10f, visPaint)
+            canvas.drawCircle(pointVis2.x, pointVis2.y, 10f, visPaint)
+            canvas.drawCircle(pointVis3.x, pointVis3.y, 10f, visPaint)
+            canvas.drawCircle(pointVis4.x, pointVis4.y, 10f, visPaint)
+            canvas.drawRect(jauge, visPaint)
         }
     }
 
@@ -68,7 +68,7 @@ class Canon(
         currentAngle = angle  //pas super clean de faire passer par un attribut mais sert a pouvoir garder l'implementation deja ecrite pas le passe
         finCanon.x = (canonLongueur * Math.sin(angle)).toFloat()
         finCanon.y = (-canonLongueur * Math.cos(angle)
-                + view.screenHeight
+                + view.screenHeight - 100f
                 ).toFloat()
     }
 

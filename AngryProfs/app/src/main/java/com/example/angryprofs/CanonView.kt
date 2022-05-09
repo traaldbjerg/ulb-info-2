@@ -30,30 +30,25 @@ class CanonView @JvmOverloads constructor(
     var screenHeight = 0f
     var drawing = false
     lateinit var thread: Thread
-    val canon = Canon(0f, 0f, 0f, 0f, this)
-    /*val obstacle = Obstacle(0f, 0f, 0f, 0f, 0f, this)
-    val cible = Cible(0f, 0f, 0f, 0f, 0f, this)*/
+    val canon = Canon(0f, 0f, 0f, this)
     val lesObstaclesDestructibles: Array<ObstacleDestructible>
     val leTerrain: Array<Terrain>
     val lesEtudiants: Array<Etudiant>
-    var lesObstacles: MutableList<Obstacle>
+    var lesObstacles: MutableList<Obstacle>   //la liste avec les objets encore presents a l'ecran
     lateinit var prof: Prof
-    //var shotsFired = 0
-    //var gameOver = false
     val activity = context as FragmentActivity
     var totalElapsedTime : Double
-    val soundPool: SoundPool
+    val soundPool1: SoundPool
     val soundMap: SparseIntArray
     var fired: Boolean = false
     var moveUsed: Boolean = false
     var timeShot: Long? = null
     var cameraMoves: Boolean = false
     var score: Int = 0
-    val scoreVictoire = 10000
+    val scoreVictoire = 10000       //score limite de victoire
     var turn : Int = 1
-    var name : String = "Bogaerts"
+    var name : String = "Haelterman"    //on selectionne haelterman comme prof par defaut si l'utilisateur n'appuie sur aucun bouton avant de tirer
     var cameraSpeed = 0f
-    var drawRunning = false
 
     init {
         totalElapsedTime = 0.0
@@ -65,19 +60,20 @@ class CanonView @JvmOverloads constructor(
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
 
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(1)
+        soundPool1 = SoundPool.Builder()
+            .setMaxStreams(3)
             .setAudioAttributes(audioAttributes)
             .build()
-        soundMap = SparseIntArray(5)
-        soundMap.put(0, soundPool.load(context, R.raw.target_hit, 1))
-        soundMap.put(1, soundPool.load(context, R.raw.canon_fire, 1))
-        soundMap.put(2, soundPool.load(context, R.raw.blocker_hit, 1))
-        soundMap.put(3, soundPool.load(context, R.raw.explosion, 1))
-        soundMap.put(4, soundPool.load(context, R.raw.blaster, 1))
+        soundMap = SparseIntArray(7)
+        soundMap.put(0, soundPool1.load(context, R.raw.target_hit, 1))
+        soundMap.put(1, soundPool1.load(context, R.raw.canon_fire, 1))
+        soundMap.put(2, soundPool1.load(context, R.raw.blocker_hit, 1))
+        soundMap.put(3, soundPool1.load(context, R.raw.explosion, 1))
+        soundMap.put(4, soundPool1.load(context, R.raw.blaster, 1))
+        soundMap.put(5, soundPool1.load(context, R.raw.wilhelm_scream, 1))
+        soundMap.put(6, soundPool1.load(context, R.raw.sad_trombone, 1))
 
-        // créer tous les obstacles, terrains etudiants et le prof ici????
-
+        //on initialise l'ensemble des obstacles du terrain de jeu ici
         val ground = Terrain(-1500f, 800f, 30000f, 100f, this)
         val limite = Terrain(-1500f, 0f, 1480f, 900f, this)
         val pre_butte = Terrain( 400f, 750f, 200f, 50f, this)
@@ -116,7 +112,7 @@ class CanonView @JvmOverloads constructor(
         val stud7 = Etudiant("laiba_la_bg", 1480f, 0f, 140f, 170f, this)
         val stud8 = Etudiant("laiba_la_bg",1770f, 0f, 120f, 150f, this)
         val stud9 = Etudiant("c_qui_ca",1950f, 650f, 120f, 150f, this)
-        lesEtudiants = arrayOf(stud1  , stud2, stud3, stud4, stud5, stud6, stud7, stud8, stud9 )
+        lesEtudiants = arrayOf(stud1  , stud2, stud3, stud4, stud5, stud6, stud7, stud8, stud9 )    //9 etudiants et 17 obstacles -> score max possible : 10700
         lesObstacles = mutableListOf(*lesObstaclesDestructibles, *leTerrain, *lesEtudiants)
     }
 
@@ -151,89 +147,89 @@ class CanonView @JvmOverloads constructor(
         canon.canonLongueur = (w / 8f)
         canon.largeur = (w / 24f)
         canon.set()
-        //canon.v0 = (w * 3 / 2f)
-
-        /*obstacle.obstacleDistance = (w * 5 / 8f)
-        obstacle.obstacleDebut = (h / 8f)
-        obstacle.obstacleFin = (h * 3 / 8f)
-        obstacle.width = (w / 24f)
-        obstacle.initialObstacleVitesse = (h / 2f)
-        obstacle.setRect()
-
-        cible.width = (w / 24f)
-        cible.cibleDistance = (w * 7 / 8f)
-        cible.cibleDebut = (h / 8f)
-        cible.cibleFin = (h * 7 / 8f)
-        cible.cibleVitesseInitiale = (-h / 4f)
-        cible.setRect()*/
         textPaint.setTextSize(w / 20f)
         textPaint.isAntiAlias = true
     }
 
-    fun playObstacleSound() {
-        soundPool.play(soundMap.get(2), 1f, 1f, 1, 0, 1f)
+    fun playTerrainSound() {
+        soundPool1.play(soundMap.get(2), 0.5f, 0.5f, 1, 0, 1f)
     }
 
-    fun playCibleSound() {
-        soundPool.play(soundMap.get(0), 1f, 1f, 1, 0, 1f)
+    fun playObstacleSound() {
+        soundPool1.play(soundMap.get(0), 0.5f, 0.5f, 1, 0, 1f)
     }
 
     fun playBoomSound() {
-        soundPool.play(soundMap.get(3), 1f, 1f, 1, 0, 1f)
+        soundPool1.play(soundMap.get(3), 1f, 1f, 1, 0, 1f)
     }
 
     fun playLaserSound() {
-        soundPool.play(soundMap.get(4), 1f, 1f, 1, 0, 1f)
+        soundPool1.play(soundMap.get(4), 1f, 1f, 1, 0, 1f)
     }
 
-    fun draw() {
+    fun playEtudiantDeathSound() {
+        soundPool1.play(soundMap.get(5), 1f, 1f, 1, 0, 1f)
+    }
+
+    fun playSadSound() {
+        soundPool1.play(soundMap.get(6), 1f, 1f, 1, 0, 1f)
+    }
+
+    fun draw() {    //methode responsable de l'affichage de tous les objets presents sur la view
         if (holder.surface.isValid) {
-            drawRunning = true
             canvas = holder.lockCanvas()
             canvas.drawRect(
                 0f, 0f, canvas.width.toFloat(),
                 canvas.height.toFloat(), backgroundPaint
             )
             canon.draw(canvas)
-            //il faut ecrire le compteur de points ici
             if (fired) {
                 if (prof.profOnScreen) {
                     prof.draw(canvas)
                 }
             }
-            for (d in lesObstacles) {
-                d.draw(canvas)
+            //on passe par les listes initiales avant de verifier si les elements sont toujours dans la liste d'objets encore presents a lecran
+            //ceci permet d'eviter d'iterer sur la liste lesObstacles qui peut etre modifiee en meme temps par un checkImpact d'un prof
+            //ce qui menait souvent a des ConcurrentModificationException
+            for (d in lesObstaclesDestructibles) {
+                if (d in lesObstacles)
+                    d.draw(canvas)
             }
-            val formatted = String.format("%1d", score)     //on dessine le score a la fin pour qu'il se superpose sur le reste
+            for (d in leTerrain)    //pas besoin de la verification pour les terrains car ils ne peuvent pas disparaitre
+                d.draw(canvas)
+            for (d in lesEtudiants)
+                if (d in lesObstacles)
+                    d.draw(canvas)
+            val formatted = String.format("%1d", score)     //on dessine le compteur de points a la fin pour qu'il se dessine au-dessus des autres objets
             canvas.drawText(
-                "Score : " + formatted,
+                getResources().getString(R.string.current_score) + formatted,
                 30f, 100f, textPaint
             )
             holder.unlockCanvasAndPost(canvas)
-            drawRunning = false
         }
     }
 
     override fun onTouchEvent(e: MotionEvent): Boolean {
+        //s'occupe de verifier quels inputs l'utilisateur rentre sur la view
         val action = e.action
-        if (!fired) {
+        if (!fired) {   //avant que le prof ne soit tiré
             when (action) {
-                MotionEvent.ACTION_DOWN -> {
+                MotionEvent.ACTION_DOWN -> {    //on vise tant que le doigt n'est pas relache
                     alignCanon(e)
                 }
                 MotionEvent.ACTION_MOVE -> {
                     alignCanon(e)
                 }
-                MotionEvent.ACTION_UP -> {
+                MotionEvent.ACTION_UP -> {      //on tire le prof
                     spawnProf(canon.finCanon)
                     fireProf(e)
                 }
             }
         }
-        if (fired && !moveUsed) {  //on empeche le pouvoir d'etre utilisé plus d'une fois par tir
+        if (fired && !moveUsed) {
             when (action) {
                 MotionEvent.ACTION_DOWN -> {
-                    moveUsed = true
+                    moveUsed = true  //on empeche le pouvoir d'etre utilisé plus d'une fois par tir
                     prof.myMove() //actionne le pouvoir
                 }
             }
@@ -241,42 +237,51 @@ class CanonView @JvmOverloads constructor(
         return true
     }
 
-    fun fireProf(event: MotionEvent) {
-        if (!prof.profOnScreen) {
+    fun fireProf(event: MotionEvent) {  //pour tirer le prof
+        if (!prof.profOnScreen) {    //on verifie qu'il n'y a pas de prof à l'ecran
             val angle = alignCanon(event)
-            prof.launch(angle, canon.v, canon.finCanon)
+            prof.launch(angle, canon.v, canon.finCanon)     //on lance le prof
             fired = true
-            soundPool.play(soundMap.get(1), 1f, 1f, 1, 0, 1f)
+            soundPool1.play(soundMap.get(1), 1f, 1f, 1, 0, 1f)
             timeShot = System.nanoTime()
         }
     }
 
-    fun addScore(bonus : Int) {
+    fun addScore(bonus : Int) {     //on incremente le score, sert simplement à encapsuler le score (donc a ne pas le modifier directement dans .choc( , ) des obstacles)
         score += bonus
     }
 
-    fun alignCanon(event: MotionEvent): Double {
+    fun alignCanon(event: MotionEvent): Double {   //pour aligner le canon avec le point de visee
         val touchPoint = Point(event.x.toInt(), event.y.toInt())
-        val centerMinusY = screenHeight - touchPoint.y
-        var angle = 0.0     //ATTENTION L'ANGLE N'EST PAS HABITUEL, PART DE oY VERS oX
+        val centerMinusY = screenHeight - 100f - touchPoint.y //le -100f pour que l'angle soit pris par rapport a la base du canon
+        var angle = 0.0     //L'ANGLE N'EST PAS HABITUEL, PART DE OY VERS OX! -> les cos et sin sont inverses par rapport a un repere habituel
         if (centerMinusY != 0.0f)
             angle = Math.atan((touchPoint.x).toDouble() / centerMinusY)
         canon.align(angle)
         return angle
     }
 
-    fun updatePositions(elapsedTimeMS: Double) {
+    fun updatePositions(elapsedTimeMS: Double) {    //methode principale de la view, met a jour les positions de chaque element pour pouvoir
+                                                    //ensuite les afficher avec draw() dans leurs nouvelles positions
         val interval = elapsedTimeMS / 1000.0
         canon.update(interval)
         if (fired) {
             prof.update(interval)
         }
-        for (d in lesObstacles) {
+        //on passe par les listes initiales avant de verifier si les elements sont toujours dans la liste d'objets encore presents a lecran
+        //ceci permet d'eviter d'iterer sur la liste lesObstacles qui peut etre modifiee en meme temps par un checkImpact d'un prof
+        //ce qui menait souvent a des ConcurrentModificationException
+        for (d in lesObstaclesDestructibles)
+            if (d in lesObstacles)
+                    d.update(interval)
+        for (d in leTerrain)    //pas besoin de la verification pour les terrains car ils ne peuvent pas disparaitre
             d.update(interval)
-        }
+        for (d in lesEtudiants)
+            if (d in lesObstacles)
+                d.update(interval)
 
         if (timeShot != null) {
-            if (System.nanoTime().toDouble() > timeShot!!.toDouble() + 2 * 10.toDouble()
+            if (System.nanoTime().toDouble() > timeShot!!.toDouble() + 2 * 10.toDouble()    //2 secondes apres que le prof ait ete tire, on declenche le suivi de la "camera"
                     .pow(9) && !cameraMoves
             ) {
                 cameraMoves = true
@@ -284,90 +289,35 @@ class CanonView @JvmOverloads constructor(
                 cameraFollows(prof.vx)
             }
         }
+    }
 
-        if (fired && !prof.profOnScreen) {
-            timeShot = null     //devrait empecher la camera de commencer a bouger juste apres que le prof soit mort mais ne fonctionne pas a tous les coups
-            cameraMoves = false
-            cameraFollows(-cameraSpeed) //on arrete le deplacement de la camera, peut etre a changer pour que ca s'arrete des le premier contact avec un obstacle?
-            cameraSpeed = 0f
-            turn += 1
-            fired = false
-            moveUsed = false
-            if (turn < 5) {
-                reset()
-                //showProfSelectionDialog(R.string.choisir_prof)
-            }
+    fun nextTurn() {    //pour passer au prochain tour, reinitialise la position de tous les obstacles, appelé par les profs quand ils n'ont plus de points de vie
+        draw()      //pour que le prof ne s'affiche plus quand on fait la pause
+        Thread.sleep(1000)  //pour faire un petit arret sur la position du prof, eviter de tirer le prof par erreur
+        if (turn < 4) {
+            reset()
+        }
+        else {
+            drawing = false
+            if (score < scoreVictoire) {
+                showGameOverDialog(R.string.lose) }
             else {
-                drawing = false
-                turn = 1
-                //gameOver = true
-                if (score < scoreVictoire) {
-                    reset()
-                    showGameOverDialog(R.string.lose) }
-                else {
-                    reset()
-                    showGameOverDialog(R.string.win) }
-            }
+                showGameOverDialog(R.string.win) }
         }
     }
 
-    fun showGameOverDialog(messageId: Int) {
+    fun showGameOverDialog(messageId: Int) {    //creation et affichage du dialogue de fin de partie
         class GameResult : DialogFragment() {
             override fun onCreateDialog(bundle: Bundle?): Dialog {
                 val builder = AlertDialog.Builder(getActivity())
                 builder.setTitle(resources.getString(messageId))
                 builder.setMessage(
-                    resources.getString(
+                    resources.getString(    //affichage du score final obtenu
                         R.string.results_format, score
                     )
                 )
                 builder.setPositiveButton(R.string.reset_game,
-                    DialogInterface.OnClickListener { _, _ -> newGame() }
-                )
-                return builder.create()
-            }
-        }
-
-        activity.runOnUiThread(
-            Runnable {
-                val ft = activity.supportFragmentManager.beginTransaction()
-                val prev =
-                    activity.supportFragmentManager.findFragmentByTag("dialog")
-                if (prev != null) {
-                    ft.remove(prev)
-                }
-                ft.addToBackStack(null)
-                val gameResult = GameResult()
-                gameResult.setCancelable(false)
-                gameResult.show(ft, "dialog")
-            }
-        )
-    }
-
-    fun showProfSelectionDialog(messageId: Int) {
-        class GameResult : DialogFragment() {
-            override fun onCreateDialog(bundle: Bundle?): Dialog {
-                val builder = AlertDialog.Builder(getActivity())
-                builder.setTitle(resources.getString(messageId))
-                builder.setMessage(
-                    resources.getString(
-                        R.string.results_format, score
-                    )
-                )
-                builder.setNeutralButton(R.string.ch_haelti,
-                    DialogInterface.OnClickListener { _, _ -> name = "Haelterman" ; }
-                )
-                builder.setNeutralButton(R.string.ch_bog,
-                    DialogInterface.OnClickListener { _, _ -> name = "Bogaerts" ; }
-                )
-                builder.setNeutralButton(R.string.ch_bers,
-                    DialogInterface.OnClickListener { _, _ -> name = "Bersini" ; }
-                )
-                builder.setNeutralButton(R.string.ch_spar,
-                    DialogInterface.OnClickListener { _, _ -> name = "Sparenberg" ; }
-                )
-                builder.setPositiveButton(R.string.ok,
-                    DialogInterface.OnClickListener { _, _ -> }
+                    DialogInterface.OnClickListener { _, _ -> newGame() }    //lancement d'une nouvelle partie quand le joueur appuye sur le bouton correspondant
                 )
                 return builder.create()
             }
@@ -400,57 +350,56 @@ class CanonView @JvmOverloads constructor(
 
     fun cameraFollows(v: Float) {  //on simule le deplacement d'une camera en faisant se deplacer tous les objets a des vitesses non nulles
         cameraSpeed += v
+        timeShot = null
         prof.follow(v)
         canon.follow(v)
         for (d in lesObstacles)
             d.follow(v)
     }
 
-    /*fun gameOver() {
-        drawing = false
-        showGameOverDialog(R.string.win)
-        gameOver = true
-    }*/
-
-    fun newGame() {
-        //cible.resetCible()
-        //obstacle.resetObstacle()
-        //timeLeft = 10.0
-        //prof.resetProf()
-
-        //if (gameOver) {
+    fun newGame() { //lance une nouvelle partie
         lesObstacles = mutableListOf(
             *lesObstaclesDestructibles,
-            *leTerrain, *lesEtudiants     //on reinitialise la liste des obstacles pour une nouvelle partie
+            *leTerrain, *lesEtudiants     //reinitialisation de la liste des obstacles pour une nouvelle partie
         )
-        reset()
+        reset()     //reinitialisation de la position de tous les obstacles
         score = 0
         turn = 1
-
-        //gameOver = false
         drawing = true
         thread = Thread(this)
         thread.start()
-        //}
     }
 
-    fun spawnProf(point : PointF) {
+    fun spawnProf(point : PointF) { //on initialise le prof choisi à l'aide des boutons (ou haelterman par defaut, cf. initialisation de name)
         when (name) {
-            "Haelterman" -> prof = Haelterman(point.x, point.y - 200f,this)
-            "Bersini" -> prof = Bersini(point.x, point.y - 200f,this)
-            "Bogaerts" -> prof = Bogaerts(point.x, point.y - 200f,this)
-            "Sparenberg" -> prof = Sparenberg(point.x, point.y - 200f,this)
+            "Haelterman" -> prof = Haelterman(point.x, point.y - 150f * 1.2f,this)
+            "Bersini" -> prof = Bersini(point.x, point.y - 150f * 1.2f,this)
+            "Bogaerts" -> prof = Bogaerts(point.x, point.y - 150f * 1.2f,this)
+            "Sparenberg" -> prof = Sparenberg(point.x, point.y - 150f * 1.2f,this)
         }
     }
 
     fun reset() {
-        for (d in lesObstacles)
+        timeShot = null     //empeche la camera de commencer a bouger juste apres que le prof meurt s'il meurt en moins de 2 secondes
+        cameraMoves = false
+        cameraFollows(-cameraSpeed) //on arrete le deplacement de la camera
+        cameraSpeed = 0f
+        turn += 1
+        fired = false
+        moveUsed = false
+        for (d in lesObstacles) //on reinitialise tous les obstacles qui sont encore en jeu
             d.reset()
         canon.reset()
     }
 
-    fun removeObstacles(list : MutableList<Obstacle>) {
+    fun removeObstacles(list : MutableList<Obstacle>) {  //sert a encapsuler lesObstacles, a ne pas la modifier directement dans un checkImpact() des profs
         lesObstacles.removeAll(list)
+    }
+
+    fun removeObstacles(obstacle : Obstacle){   //surcharge de la methode, permet d'economiser un tout petit peu de temps de calcul pour les profs qui ne touchent qu'un
+        //obstacle a la fois, dans ce cas, il n'y a pas besoin de ranger l'unique obstacle touché dans une MutableList<Obstacle> pour ensuite la passer a la methode ci-dessus
+        //on peut alors directement passer l'obstacle ici
+        lesObstacles.remove(obstacle)
     }
 
 }

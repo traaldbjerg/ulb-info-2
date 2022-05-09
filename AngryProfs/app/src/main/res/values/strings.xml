@@ -4,12 +4,15 @@
     <string name="choisir_prof">Choisissez votre chair à canon</string>
     <string name="win">Victoire</string>
     <string name="lose">Défaite</string>
-    <string name="results_format" formatted="true">Score actuel: %1$d</string>
+    <string name="results_format" formatted="true">Score final : %1$d</string>
     <string name="reset_game">Nouvelle partie</string>
     <string name="ch_haelti">Haelterman</string>
     <string name="ch_bog">Bogaerts</string>
     <string name="ch_bers">Bersini</string>
     <string name="ch_spar">Sparenberg</string>
     <string name="ok">OK</string>
+    <string name = "tech_bersini1">Mr. Bersini a trouvé et exploité une faille dans le code du jeu!</string>
+    <string name = "tech_bersini2">Mr. Bersini n\'a pas trouvé de deuxième faille dans le code infaillible de ce jeu.</string>
+    <string name = "current_score">Score : </string>
 
 </resources>

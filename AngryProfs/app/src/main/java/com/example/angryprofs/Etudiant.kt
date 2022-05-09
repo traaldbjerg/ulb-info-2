@@ -37,6 +37,7 @@ class Etudiant(name: String,
 
     override fun choc(prof: Prof, vuln : Boolean) : Boolean {
         view.addScore(1000)
+        view.playEtudiantDeathSound()
         return true //represente si on retire l'objet des obstacles, important pour certains profs sinon ConcurrentModificationException
     }
 

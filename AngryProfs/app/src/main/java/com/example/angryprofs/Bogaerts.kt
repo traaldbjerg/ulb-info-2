@@ -1,9 +1,6 @@
 package com.example.angryprofs
 
 import android.graphics.*
-import android.media.AudioAttributes
-import android.media.SoundPool
-import android.util.SparseIntArray
 import kotlin.math.pow
 
 class Bogaerts(var x: Float,
@@ -17,24 +14,23 @@ class Bogaerts(var x: Float,
     override val gravity = 150
     override var profOnScreen = false
     override var currentHP: Int = 4
-    override val name = "Bersini"
+    override val name = "bogaerts"
     override val image =
         view.getResources()
-            .getIdentifier("bogaerts", "drawable", view.getContext().getPackageName())
+            .getIdentifier(name, "drawable", view.getContext().getPackageName())
 
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
     lateinit var explosion : RectF
-    val explos_image : Int = view.getResources().getIdentifier("explosion", "drawable", view.getContext().getPackageName())
-    val explos_bmp = BitmapFactory.decodeResource(view.getResources(), explos_image)
+    val explosion_image : Int = view.getResources().getIdentifier("explosion", "drawable", view.getContext().getPackageName())
+    val explosion_bmp = BitmapFactory.decodeResource(view.getResources(), explosion_image)
     var explosTime : Long? = null
-    val explos_width = 250f
-    var x_explosion : Float = x + width / 2 - explos_width / 2
-    var y_explosion : Float = y + width / 2 * 1.2f - explos_width / 2
-    var waitTime = 0
+    val explosion_width = 500f
+    var x_explosion : Float = x + width / 2 - explosion_width / 2
+    var y_explosion : Float = y + width / 2 * 1.2f - explosion_width / 2
 
     override fun launch(angle: Double, v : Float, finCanon : PointF) {
         x = finCanon.x
-        y = finCanon.y - width / 2
+        y = finCanon.y - width / 2 * 1.2f  //pour que le milieu du prof soit a la hauteur du milieu du canon lors du tir
         vx = (v * Math.sin(angle)).toFloat()
         vy = (-v * Math.cos(angle)).toFloat()
         profOnScreen = true
@@ -42,8 +38,8 @@ class Bogaerts(var x: Float,
 
     override fun draw(canvas: Canvas) {
         canvas.drawBitmap(bmp, null, r, null)
-        if (explosTime != null) {
-            canvas.drawBitmap(explos_bmp, null, explosion, null)
+        if (explosTime != null) {       //si l'explosion a eu lieu et n'a pas encore expiré
+            canvas.drawBitmap(explosion_bmp, null, explosion, null)    //on affiche l'explosion
         }
     }
 
@@ -55,10 +51,11 @@ class Bogaerts(var x: Float,
             y_explosion += (interval * vy).toFloat()
             checkImpact(r, true)
             if (currentHP == 0) {
-                profOnScreen = false
+                profOnScreen = false     //on arrete d'afficher le prof
+                view.nextTurn()    //on passe au prochain tour
             }
             if (explosTime != null) {
-                if (System.nanoTime().toDouble() > (explosTime!! + 5f * 10.toDouble()
+                if (System.nanoTime().toDouble() > (explosTime!! + 5f * 10.toDouble()       //on laisse l'explosion a l'ecran pendant 0.5 secondes
                         .pow(8))
                 ) {
                     explosTime = null
@@ -67,12 +64,8 @@ class Bogaerts(var x: Float,
         }
     }
 
-    override fun resetProf() {
-        profOnScreen = false
-    }
-
     override fun myMove() {     //les chimistes savent tous faire des explosifs, non?
-        explosion = RectF(x_explosion, y_explosion, x_explosion + explos_width, y_explosion + explos_width)
+        explosion = RectF(x_explosion, y_explosion, x_explosion + explosion_width, y_explosion + explosion_width)
         explosTime = System.nanoTime()
         checkImpact(explosion, false)
         view.playBoomSound()
@@ -82,7 +75,7 @@ class Bogaerts(var x: Float,
         vx += -v
     }
 
-    override fun checkImpact(hitbox: RectF, vuln : Boolean) {       //verifie s'il y a une intersection avec un obstacle
+    override fun checkImpact(hitbox: RectF, vuln : Boolean) {
         var toRemove : MutableList<Obstacle> = mutableListOf()
         for (d in view.lesObstacles) {
             if (RectF.intersects(hitbox, d.r)) {
@@ -98,10 +91,6 @@ class Bogaerts(var x: Float,
             }
         }
         if (toRemove.size > 0) {
-            while (view.drawRunning) {  //on attend que le draw s'arrete pour modifier la liste des obstacles, sinon on risque CME PAS OPTIMISE ON PERD PLEIN DE TEMPS DE CALCUL
-                waitTime += 1
-            }
-            waitTime = 0
             view.removeObstacles(toRemove)
         }
     }

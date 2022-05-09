@@ -36,6 +36,7 @@ class ObstacleDestructible(
         }
 
         view.addScore(100)
+        view.playObstacleSound()
         return true //si on retire l'objet des obstacles, important pour certains profs sinon ConcurrentModificationException
     }
 

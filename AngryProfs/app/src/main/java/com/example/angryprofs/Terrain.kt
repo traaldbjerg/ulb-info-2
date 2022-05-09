@@ -34,6 +34,7 @@ class Terrain(
                 prof.bounce("x", lastInterval)
             }
         }
+        view.playTerrainSound()
         return false //represente si on retire l'objet des obstacles, important pour certains profs sinon ConcurrentModificationException
     }
 
