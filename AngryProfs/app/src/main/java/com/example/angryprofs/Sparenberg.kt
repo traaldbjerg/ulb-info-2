@@ -57,6 +57,7 @@ class Sparenberg(
         else {
             bounce("x", 0.0)
             view.playSadSound() //c'est quand meme pas de chance :(
+            view.changeMoveUsed()
         }
     }
 

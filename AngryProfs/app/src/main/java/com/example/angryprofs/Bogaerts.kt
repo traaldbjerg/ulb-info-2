@@ -69,6 +69,7 @@ class Bogaerts(var x: Float,
         explosTime = System.nanoTime()
         checkImpact(explosion, false)
         view.playBoomSound()
+        view.changeMoveUsed()
     }
 
     override fun follow(v: Float) {

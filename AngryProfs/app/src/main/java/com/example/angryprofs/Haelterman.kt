@@ -73,6 +73,7 @@ class Haelterman(var x: Float,
         laserTime = System.nanoTime()
         checkImpact(laser, false)
         view.playLaserSound()
+        view.changeMoveUsed()
     }
 
     override fun follow(v: Float) {     //change la vitesse du professeur afin de simuler le suivi du prof par la camera

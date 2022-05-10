@@ -72,6 +72,7 @@ class Bersini(
             val toast = Toast.makeText(view.activity, text, duration)
             toast.show()
         }
+        view.changeMoveUsed()
     }
 
     override fun follow(v: Float) {     //change la vitesse du professeur afin de simuler le suivi du prof par la camera

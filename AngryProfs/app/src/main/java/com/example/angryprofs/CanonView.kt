@@ -226,7 +226,6 @@ class CanonView @JvmOverloads constructor(
         if (fired && !moveUsed) {
             when (action) {
                 MotionEvent.ACTION_DOWN -> {
-                    moveUsed = true  //on empeche le pouvoir d'etre utilisé plus d'une fois par tir
                     prof.myMove() //actionne le pouvoir
                 }
             }
@@ -397,6 +396,10 @@ class CanonView @JvmOverloads constructor(
         //obstacle a la fois, dans ce cas, il n'y a pas besoin de ranger l'unique obstacle touché dans une MutableList<Obstacle> pour ensuite la passer a la methode ci-dessus
         //on peut alors directement passer l'obstacle ici
         lesObstacles.remove(obstacle)
+    }
+
+    fun changeMoveUsed() {
+        moveUsed = true
     }
 
 }
