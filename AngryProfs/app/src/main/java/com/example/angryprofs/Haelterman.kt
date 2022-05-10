@@ -21,11 +21,11 @@ class Haelterman(var x: Float,
 
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
 
-    var laserTime : Long? = null
-    lateinit var laser : RectF
-    val laserPaint = Paint()
-    var x_laser : Float = x + width
-    var y_laser : Float = (y + 0.25 * 1.2 * width).toFloat() + 40f
+    private var laserTime : Long? = null
+    private lateinit var laser : RectF
+    private val laserPaint = Paint()
+    private var x_laser : Float = x + width
+    private var y_laser : Float = (y + 0.25 * 1.2 * width).toFloat() + 40f
 
     init {
         laserPaint.color = Color.RED

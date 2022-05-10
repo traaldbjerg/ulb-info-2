@@ -7,25 +7,25 @@ class Canon(
     var canonBaseRadius: Float,
     var canonLongueur: Float,
     var largeur: Float,
-    val view: CanonView
+    private val view: CanonView
 ) {
-    val canonPaint = Paint()
-    val visPaint = Paint()
+    private val canonPaint = Paint()
+    private val visPaint = Paint()
     var finCanon = PointF(canonLongueur, view.screenHeight - 150f)
     var baseCanon = PointF(0f, view.screenHeight - 100f)
-    var pointVis1: PointF = PointF(0f, 0f)    //juste pour avoir une idée d'où on vise
-    var pointVis2: PointF = PointF(0f, 0f)
-    var pointVis3: PointF = PointF(0f, 0f)
-    var pointVis4: PointF = PointF(0f, 0f)
-    val gravity = 150
-    var vx = 0f
-    var v0 = 400f    //vitesse maximale que peut atteindre le projectile
+    private var pointVis1: PointF = PointF(0f, 0f)    //juste pour avoir une idée d'où on vise
+    private var pointVis2: PointF = PointF(0f, 0f)
+    private var pointVis3: PointF = PointF(0f, 0f)
+    private var pointVis4: PointF = PointF(0f, 0f)
+    private val gravity = 150
+    private var vx = 0f
+    private var v0 = 400f    //vitesse maximale que peut atteindre le projectile
     var v = v0      //vitesse a laquelle sera tire le projectile, mise a jour a chaque appel de update(interval)
-    var currentTime = 0.0f      //permet de mettre a jour l'effet de jauge dans la methode update(interval)
-    var currentAngle : Double = 0.0   //permet de sauvegarder un angle afin que les points de visee puissent utiliser les formules de tir oblique dans update(interval)
-    var dx = 0f    //represente l'espacement horizontal entre les points de visee (depend de la vitesse v)
-    var jauge = RectF(50f, 400f, 80f, 400f)
-    val jauge_height = 150f
+    private var currentTime = 0.0f      //permet de mettre a jour l'effet de jauge dans la methode update(interval)
+    private var currentAngle : Double = 0.0   //permet de sauvegarder un angle afin que les points de visee puissent utiliser les formules de tir oblique dans update(interval)
+    private var dx = 0f    //represente l'espacement horizontal entre les points de visee (depend de la vitesse v)
+    private var jauge = RectF(50f, 400f, 80f, 400f)
+    private val jauge_height = 150f
 
     init {
         visPaint.color = Color.RED
@@ -36,7 +36,7 @@ class Canon(
     fun update(interval : Double) {     //sert a mettre a jour les positions des 4 points de visee et la position du canon lorsqu'il faut faire le suivi de camera
         finCanon.offset(vx * interval.toFloat() , 0f)
         baseCanon.offset(vx * interval.toFloat() , 0f)
-        currentTime = view.totalElapsedTime.toFloat()
+        currentTime += interval.toFloat()
         v = v0 * Math.abs((Math.sin(currentTime * Math.PI / 6).toFloat())) //simule un effet de jauge, il reste encore à la dessiner
         jauge = RectF(50f, 550f - Math.abs((Math.sin(currentTime * Math.PI / 6).toFloat())) * jauge_height, 80f, 550f)
         dx = (Math.sin(currentAngle) * v).toFloat()

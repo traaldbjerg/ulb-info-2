@@ -7,9 +7,9 @@ import android.graphics.RectF
 import android.widget.Toast
 
 class Bersini(
-    var x: Float,
-    var y: Float,
-    val view: CanonView
+    private var x: Float,
+    private var y: Float,
+    private val view: CanonView
 ) : Prof {
     override val width = 150f //a changer pour une valeur exacte
     override var r = RectF(x, y, x + width, y + width * 1.2f)

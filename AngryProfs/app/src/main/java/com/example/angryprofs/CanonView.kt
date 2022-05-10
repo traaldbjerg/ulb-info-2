@@ -24,44 +24,42 @@ class CanonView @JvmOverloads constructor(
 ) : SurfaceView(context, attributes, defStyleAttr), SurfaceHolder.Callback, Runnable {
 
     lateinit var canvas: Canvas
-    val backgroundPaint = Paint()
-    val textPaint = Paint()
+    private val backgroundPaint = Paint()
+    private val textPaint = Paint()
     var screenWidth = 0f
     var screenHeight = 0f
-    var drawing = false
-    lateinit var thread: Thread
-    val canon = Canon(0f, 0f, 0f, this)
-    val lesObstaclesDestructibles: Array<ObstacleDestructible>
-    val leTerrain: Array<Terrain>
+    private var drawing = false
+    private lateinit var thread: Thread
+    private val canon = Canon(0f, 0f, 0f, this)
+    private val lesObstaclesDestructibles: Array<ObstacleDestructible>
+    private val leTerrain: Array<Terrain>
     val lesEtudiants: Array<Etudiant>
     var lesObstacles: MutableList<Obstacle>   //la liste avec les objets encore presents a l'ecran
-    lateinit var prof: Prof
+    lateinit var prof: Prof     //le prof qui sera initialise plus tard par spawnProf()
     val activity = context as FragmentActivity
-    var totalElapsedTime : Double
-    val soundPool1: SoundPool
-    val soundMap: SparseIntArray
+    private val soundPool1: SoundPool
+    private val soundMap: SparseIntArray
     var fired: Boolean = false
-    var moveUsed: Boolean = false
-    var timeShot: Long? = null
-    var cameraMoves: Boolean = false
-    var score: Int = 0
-    val scoreVictoire = 10000       //score limite de victoire
-    var turn : Int = 1
+    private var moveUsed: Boolean = false
+    private var timeShot: Long? = null
+    private var cameraMoves: Boolean = false
+    var score: Int = 0      //public car le dialogfragment final doit y avoir acces
+    private val scoreVictoire = 10000       //score limite de victoire, aisement changeable ici
+    private var turn : Int = 1
     var name : String = "Haelterman"    //on selectionne haelterman comme prof par defaut si l'utilisateur n'appuie sur aucun bouton avant de tirer
-    var cameraSpeed = 0f
+    var cameraSpeed : Float = 0f
 
     init {
-        totalElapsedTime = 0.0
         backgroundPaint.color = Color.rgb(128,234,255)
         textPaint.textSize = screenWidth / 20
         textPaint.color = Color.BLACK
         val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME)
+            .setUsage(AudioAttributes.USAGE_GAME)   //le son ne se jouait pas sur certains telephones sans cet attribut ci
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
 
         soundPool1 = SoundPool.Builder()
-            .setMaxStreams(3)
+            .setMaxStreams(4)       //4 sons peuvent se jouer en parallele
             .setAudioAttributes(audioAttributes)
             .build()
         soundMap = SparseIntArray(7)
@@ -104,16 +102,16 @@ class CanonView @JvmOverloads constructor(
                 obs15, obs16, obs17
             )
         val stud1 = Etudiant("yeehaw", 855f, 640f, 140f, 170f, this)
-        val stud2 = Etudiant("c_qui_ca",905f, 400f, 120f, 150f, this)
+        val stud2 = Etudiant("alex_le_bg",905f, 400f, 120f, 150f, this)
         val stud3 = Etudiant("laiba_la_bg",905f, 0f, 120f, 150f, this)
         val stud4 = Etudiant("yeehaw", 1090f, 300f, 140f, 170f, this)
-        val stud5 = Etudiant("c_qui_ca",1270f, 350f, 120f, 150f, this)
+        val stud5 = Etudiant("alex_le_bg",1270f, 350f, 120f, 150f, this)
         val stud6 = Etudiant("yeehaw", 1480f, 550f, 140f, 170f, this)
         val stud7 = Etudiant("laiba_la_bg", 1480f, 0f, 140f, 170f, this)
         val stud8 = Etudiant("laiba_la_bg",1770f, 0f, 120f, 150f, this)
-        val stud9 = Etudiant("c_qui_ca",1950f, 650f, 120f, 150f, this)
+        val stud9 = Etudiant("alex_le_bg",1950f, 650f, 120f, 150f, this)
         lesEtudiants = arrayOf(stud1  , stud2, stud3, stud4, stud5, stud6, stud7, stud8, stud9 )    //9 etudiants et 17 obstacles -> score max possible : 10700
-        lesObstacles = mutableListOf(*lesObstaclesDestructibles, *leTerrain, *lesEtudiants)
+        lesObstacles = mutableListOf(*leTerrain, *lesEtudiants, *lesObstaclesDestructibles)
     }
 
     fun pause() {
@@ -132,7 +130,6 @@ class CanonView @JvmOverloads constructor(
         while (drawing) {
             val currentTime = System.currentTimeMillis()
             var elapsedTimeMS: Double = (currentTime - previousFrameTime).toDouble()
-            totalElapsedTime += elapsedTimeMS / 1000.0
             updatePositions(elapsedTimeMS)
             draw()
             previousFrameTime = currentTime
@@ -152,11 +149,11 @@ class CanonView @JvmOverloads constructor(
     }
 
     fun playTerrainSound() {
-        soundPool1.play(soundMap.get(2), 0.5f, 0.5f, 1, 0, 1f)
+        soundPool1.play(soundMap.get(2), 0.5f, 0.5f, 0, 0, 1f)
     }
 
     fun playObstacleSound() {
-        soundPool1.play(soundMap.get(0), 0.5f, 0.5f, 1, 0, 1f)
+        soundPool1.play(soundMap.get(0), 0.5f, 0.5f, 0, 0, 1f)
     }
 
     fun playBoomSound() {
@@ -175,14 +172,13 @@ class CanonView @JvmOverloads constructor(
         soundPool1.play(soundMap.get(6), 1f, 1f, 1, 0, 1f)
     }
 
-    fun draw() {    //methode responsable de l'affichage de tous les objets presents sur la view
+    private fun draw() {    //methode responsable de l'affichage de tous les objets presents sur la view
         if (holder.surface.isValid) {
             canvas = holder.lockCanvas()
             canvas.drawRect(
                 0f, 0f, canvas.width.toFloat(),
                 canvas.height.toFloat(), backgroundPaint
             )
-            canon.draw(canvas)
             if (fired) {
                 if (prof.profOnScreen) {
                     prof.draw(canvas)
@@ -200,7 +196,8 @@ class CanonView @JvmOverloads constructor(
             for (d in lesEtudiants)
                 if (d in lesObstacles)
                     d.draw(canvas)
-            val formatted = String.format("%1d", score)     //on dessine le compteur de points a la fin pour qu'il se dessine au-dessus des autres objets
+            canon.draw(canvas)  //on dessine le canon apres les obstacles pour que les points de visee apparaissent au dessus des obstacles
+            val formatted = String.format("%1d", score)     //on dessine le compteur de points a la fin pour qu'il se dessine au-dessus des autres objets et faciliter la visee
             canvas.drawText(
                 getResources().getString(R.string.current_score) + formatted,
                 30f, 100f, textPaint
@@ -237,7 +234,7 @@ class CanonView @JvmOverloads constructor(
         return true
     }
 
-    fun fireProf(event: MotionEvent) {  //pour tirer le prof
+    private fun fireProf(event: MotionEvent) {  //pour tirer le prof
         if (!prof.profOnScreen) {    //on verifie qu'il n'y a pas de prof à l'ecran
             val angle = alignCanon(event)
             prof.launch(angle, canon.v, canon.finCanon)     //on lance le prof
@@ -251,7 +248,7 @@ class CanonView @JvmOverloads constructor(
         score += bonus
     }
 
-    fun alignCanon(event: MotionEvent): Double {   //pour aligner le canon avec le point de visee
+    private fun alignCanon(event: MotionEvent): Double {   //pour aligner le canon avec le point de visee
         val touchPoint = Point(event.x.toInt(), event.y.toInt())
         val centerMinusY = screenHeight - 100f - touchPoint.y //le -100f pour que l'angle soit pris par rapport a la base du canon
         var angle = 0.0     //L'ANGLE N'EST PAS HABITUEL, PART DE OY VERS OX! -> les cos et sin sont inverses par rapport a un repere habituel
@@ -261,7 +258,7 @@ class CanonView @JvmOverloads constructor(
         return angle
     }
 
-    fun updatePositions(elapsedTimeMS: Double) {    //methode principale de la view, met a jour les positions de chaque element pour pouvoir
+    private fun updatePositions(elapsedTimeMS: Double) {    //methode principale de la view, met a jour les positions de chaque element pour pouvoir
                                                     //ensuite les afficher avec draw() dans leurs nouvelles positions
         val interval = elapsedTimeMS / 1000.0
         canon.update(interval)
@@ -306,7 +303,7 @@ class CanonView @JvmOverloads constructor(
         }
     }
 
-    fun showGameOverDialog(messageId: Int) {    //creation et affichage du dialogue de fin de partie
+    private fun showGameOverDialog(messageId: Int) {    //creation et affichage du dialogue de fin de partie
         class GameResult : DialogFragment() {
             override fun onCreateDialog(bundle: Bundle?): Dialog {
                 val builder = AlertDialog.Builder(getActivity())
@@ -357,7 +354,7 @@ class CanonView @JvmOverloads constructor(
             d.follow(v)
     }
 
-    fun newGame() { //lance une nouvelle partie
+    private fun newGame() { //lance une nouvelle partie
         lesObstacles = mutableListOf(
             *lesObstaclesDestructibles,
             *leTerrain, *lesEtudiants     //reinitialisation de la liste des obstacles pour une nouvelle partie
@@ -370,7 +367,7 @@ class CanonView @JvmOverloads constructor(
         thread.start()
     }
 
-    fun spawnProf(point : PointF) { //on initialise le prof choisi à l'aide des boutons (ou haelterman par defaut, cf. initialisation de name)
+    private fun spawnProf(point : PointF) { //on initialise le prof choisi à l'aide des boutons (ou haelterman par defaut, cf. initialisation de name)
         when (name) {
             "Haelterman" -> prof = Haelterman(point.x, point.y - 150f * 1.2f,this)
             "Bersini" -> prof = Bersini(point.x, point.y - 150f * 1.2f,this)
@@ -379,7 +376,7 @@ class CanonView @JvmOverloads constructor(
         }
     }
 
-    fun reset() {
+    private fun reset() {
         timeShot = null     //empeche la camera de commencer a bouger juste apres que le prof meurt s'il meurt en moins de 2 secondes
         cameraMoves = false
         cameraFollows(-cameraSpeed) //on arrete le deplacement de la camera

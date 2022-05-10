@@ -28,12 +28,13 @@ class Terrain(
 
     override fun choc(prof: Prof, vuln : Boolean) : Boolean {
         if (vuln) {
-            if (prof.r.bottom - prof.vy * lastInterval <= r.top || prof.r.top - prof.vy * lastInterval >= r.bottom) //on verifie si le prof vient de traverser le haut ou le bas de l'obstacle
+            if (prof.r.bottom - prof.vy * lastInterval * 2 <= r.top || prof.r.top - prof.vy * lastInterval * 2 >= r.bottom) //on verifie si le prof vient de traverser le haut ou le bas de l'obstacle
                 prof.bounce("y", lastInterval)
             else {
                 prof.bounce("x", lastInterval)
             }
         }
+        view.addScore(0)
         view.playTerrainSound()
         return false //represente si on retire l'objet des obstacles, important pour certains profs sinon ConcurrentModificationException
     }

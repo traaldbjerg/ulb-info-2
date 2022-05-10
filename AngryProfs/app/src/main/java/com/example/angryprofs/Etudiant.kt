@@ -18,11 +18,11 @@ class Etudiant(name: String,
     view
 ) {
 
-    val image =
+    private val image =
         view.getResources()
             .getIdentifier(name, "drawable", view.getContext().getPackageName())
 
-    val bmp = BitmapFactory.decodeResource(view.getResources(), image)
+    private val bmp = BitmapFactory.decodeResource(view.getResources(), image)
 
     init {
         r = RectF(x, y,

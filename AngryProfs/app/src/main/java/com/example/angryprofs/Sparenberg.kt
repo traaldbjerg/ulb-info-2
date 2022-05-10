@@ -31,7 +31,7 @@ class Sparenberg(
         profOnScreen = true     //on declenche l'affichage du prof dans view.draw()
     }
 
-    override fun draw(canvas: Canvas) {     //affichage le prof
+    override fun draw(canvas: Canvas) {     //affichage du prof
         canvas.drawBitmap(bmp, null, r, null)
     }
 

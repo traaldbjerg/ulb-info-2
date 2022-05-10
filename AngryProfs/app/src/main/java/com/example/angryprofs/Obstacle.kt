@@ -12,25 +12,20 @@ abstract class Obstacle(        //classe mere de tous les types d'obstacle, qui 
     open val height: Float,
     open val view: CanonView
 ) {
-    open var r = RectF(x, y,
+    var r = RectF(x, y,
         x + length, y + height)
-    open val paint = Paint()
-    open var vx = 0f
-    open var lastInterval = 0.0   //important pour verifier dans les methodes de choc si le prof vient de traverser les cotes horizontaux ou verticaux (cf. Terrain et ObstacleDestructible)
+    val paint = Paint()
+    var vx = 0f
+    var lastInterval = 0.0   //important pour verifier dans les methodes de choc si le prof vient de traverser les cotes horizontaux ou verticaux (cf. Terrain et ObstacleDestructible)
 
-    open fun draw(canvas: Canvas) { //affiche l'obstacle a l'ecran
+    open fun draw(canvas: Canvas) { //affiche l'obstacle a l'ecran, open car les etudiants affichent leur bitmap a la place
         canvas.drawRect(
             r.left, r.top, r.right,
             r.bottom, paint
         )
     }
 
-    open fun setRect() {
-        r.set(x, y,
-        x + length, y + height)
-    }
-
-    open fun update(interval: Double) { //change la position de l'obstacle a chaque intervale de temps (important pour simuler le suivi de la camera)
+    fun update(interval: Double) { //change la position de l'obstacle a chaque intervale de temps (important pour simuler le suivi de la camera)
         lastInterval = interval
         if (vx != 0f) {
             var move = (interval * vx).toFloat()
@@ -41,11 +36,11 @@ abstract class Obstacle(        //classe mere de tous les types d'obstacle, qui 
     abstract fun choc(prof: Prof, vuln : Boolean) : Boolean     //decrit le comportement de l'obstacle lors d'un choc
         //renvoie true s'il faut retirer l'objet de view.lesObstacles, false sinon (cf. les implementations)
 
-    open fun follow(v: Float) {     //on donne une vitesse a l'obstacle pour simuler le suivi de la camera
+    fun follow(v: Float) {     //on donne une vitesse a l'obstacle pour simuler le suivi de la camera
         vx += -v
     }
 
-    open fun reset() {      // on reinitialise la position de l'obstacle a la fin de chaque tour (pour annuler le deplacement des objets du au suivi de la camera)
+    fun reset() {      // on reinitialise la position de l'obstacle a la fin de chaque tour (pour annuler le deplacement des objets du au suivi de la camera)
         r = RectF(x, y,
         x + length, y + height)
         vx = 0f     //on retire toute vitesse horizontale aux objets, sinon il arrivait apres une view.newGame() que certains obstacles qui avaient disparu avant que view.cameraFollows

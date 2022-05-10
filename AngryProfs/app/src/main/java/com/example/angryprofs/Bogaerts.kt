@@ -21,12 +21,12 @@ class Bogaerts(var x: Float,
 
     override val bmp = BitmapFactory.decodeResource(view.getResources(), image)
     lateinit var explosion : RectF
-    val explosion_image : Int = view.getResources().getIdentifier("explosion", "drawable", view.getContext().getPackageName())
-    val explosion_bmp = BitmapFactory.decodeResource(view.getResources(), explosion_image)
-    var explosTime : Long? = null
-    val explosion_width = 500f
-    var x_explosion : Float = x + width / 2 - explosion_width / 2
-    var y_explosion : Float = y + width / 2 * 1.2f - explosion_width / 2
+    private val explosion_image : Int = view.getResources().getIdentifier("explosion", "drawable", view.getContext().getPackageName())
+    private val explosion_bmp = BitmapFactory.decodeResource(view.getResources(), explosion_image)
+    private var explosTime : Long? = null
+    private val explosion_width = 500f
+    private var x_explosion : Float = x + width / 2 - explosion_width / 2
+    private var y_explosion : Float = y + width / 2 * 1.2f - explosion_width / 2
 
     override fun launch(angle: Double, v : Float, finCanon : PointF) {
         x = finCanon.x
